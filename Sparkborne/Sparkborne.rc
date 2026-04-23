@@ -1,0 +1,56 @@
+#include <windows.h>
+#include "resource.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "Sparkborne"
+    IDS_MENU_FILE           "File"
+    IDS_MENU_EXIT           "Exit"
+    IDS_MENU_STARTUP        "Startup items"
+    IDS_MENU_REFRESH        "Refresh"
+    IDS_MENU_HELP           "Help"
+    IDS_MENU_MORE_WORKS     "More things made by me..."
+    IDS_WINDOW_HINT         "Select startup items from the menu to view details and enable/disable."
+    IDS_ITEM_ENABLED        "Enabled"
+    IDS_ITEM_DISABLED       "Disabled"
+    IDS_ITEM_TYPE_REGISTRY  "Registry"
+    IDS_ITEM_TYPE_SHORTCUT  "Shortcut"
+    IDS_ITEM_DETAILS_FMT    "Name: %s\nType: %s\nSource: %s\nPath/Command: %s\nStatus: %s\n\n%s"
+    IDS_ENABLE_ACTION       "Enable this startup item?"
+    IDS_DISABLE_ACTION      "Disable this startup item?"
+    IDS_ERROR_TITLE         "Sparkborne"
+    IDS_ACTION_FAILED_FMT   "Operation failed:\n%s"
+    IDS_WEB_WINDOW_TITLE    "More things made by me"
+    IDS_REGISTRY_HKCU_RUN   "HKCU Run"
+    IDS_REGISTRY_HKCU_DISABLED "HKCU -Run"
+    IDS_REGISTRY_HKLM_RUN   "HKLM Run"
+    IDS_REGISTRY_HKLM_DISABLED "HKLM -Run"
+END
+
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "Sparkborne 启动项管理器"
+    IDS_MENU_FILE           "文件"
+    IDS_MENU_EXIT           "退出"
+    IDS_MENU_STARTUP        "启动项"
+    IDS_MENU_REFRESH        "刷新"
+    IDS_MENU_HELP           "帮助"
+    IDS_MENU_MORE_WORKS     "更多我做的东西..."
+    IDS_WINDOW_HINT         "在菜单中选择启动项可查看详情并启用/禁用。"
+    IDS_ITEM_ENABLED        "已启用"
+    IDS_ITEM_DISABLED       "已禁用"
+    IDS_ITEM_TYPE_REGISTRY  "注册表"
+    IDS_ITEM_TYPE_SHORTCUT  "快捷方式"
+    IDS_ITEM_DETAILS_FMT    "名称：%s\n类型：%s\n来源：%s\n路径/命令：%s\n状态：%s\n\n%s"
+    IDS_ENABLE_ACTION       "是否启用该启动项？"
+    IDS_DISABLE_ACTION      "是否禁用该启动项？"
+    IDS_ERROR_TITLE         "Sparkborne"
+    IDS_ACTION_FAILED_FMT   "操作失败：\n%s"
+    IDS_WEB_WINDOW_TITLE    "更多我做的东西"
+    IDS_REGISTRY_HKCU_RUN   "HKCU Run"
+    IDS_REGISTRY_HKCU_DISABLED "HKCU -Run"
+    IDS_REGISTRY_HKLM_RUN   "HKLM Run"
+    IDS_REGISTRY_HKLM_DISABLED "HKLM -Run"
+END
