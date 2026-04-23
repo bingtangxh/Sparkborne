@@ -149,7 +149,25 @@ void AppendRegistryItems(HKEY root, const std::wstring& keyPath, bool enabled, U
             continue;
         }
 
-        std::wstring command(reinterpret_cast<wchar_t*>(dataBuffer.data()), dataLength / sizeof(wchar_t));
+        if (dataLength < sizeof(wchar_t) || (dataLength % sizeof(wchar_t)) != 0)
+        {
+            continue;
+        }
+
+        const size_t wcharCount = dataLength / sizeof(wchar_t);
+        auto* chars = reinterpret_cast<wchar_t*>(dataBuffer.data());
+        if (chars[wcharCount - 1] != L'\0')
+        {
+            if (dataLength + sizeof(wchar_t) > dataBuffer.size())
+            {
+                dataBuffer.resize(dataLength + sizeof(wchar_t));
+                chars = reinterpret_cast<wchar_t*>(dataBuffer.data());
+            }
+            chars[wcharCount] = L'\0';
+            dataLength += sizeof(wchar_t);
+        }
+
+        std::wstring command(chars, dataLength / sizeof(wchar_t));
         const auto nullPos = command.find(L'\0');
         if (nullPos != std::wstring::npos)
         {
@@ -218,32 +236,32 @@ bool ToggleRegistryItem(const StartupItem& item)
     const std::wstring fromKey = enable ? kDisabledRunSubkey : kRunSubkey;
     const std::wstring toKey = enable ? kRunSubkey : kDisabledRunSubkey;
 
-    HKEY source = nullptr;
-    if (RegOpenKeyExW(item.root, fromKey.c_str(), 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &source) != ERROR_SUCCESS)
+    HKEY sourceRead = nullptr;
+    if (RegOpenKeyExW(item.root, fromKey.c_str(), 0, KEY_QUERY_VALUE, &sourceRead) != ERROR_SUCCESS)
     {
         return false;
     }
 
     DWORD type = 0;
     DWORD dataSize = 0;
-    if (RegQueryValueExW(source, item.name.c_str(), nullptr, &type, nullptr, &dataSize) != ERROR_SUCCESS)
+    if (RegQueryValueExW(sourceRead, item.name.c_str(), nullptr, &type, nullptr, &dataSize) != ERROR_SUCCESS)
     {
-        RegCloseKey(source);
+        RegCloseKey(sourceRead);
         return false;
     }
 
     std::vector<BYTE> data(dataSize);
-    if (RegQueryValueExW(source, item.name.c_str(), nullptr, &type, data.data(), &dataSize) != ERROR_SUCCESS)
+    if (RegQueryValueExW(sourceRead, item.name.c_str(), nullptr, &type, data.data(), &dataSize) != ERROR_SUCCESS)
     {
-        RegCloseKey(source);
+        RegCloseKey(sourceRead);
         return false;
     }
+    RegCloseKey(sourceRead);
 
     HKEY target = nullptr;
     DWORD disposition = 0;
     if (RegCreateKeyExW(item.root, toKey.c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &target, &disposition) != ERROR_SUCCESS)
     {
-        RegCloseKey(source);
         return false;
     }
 
@@ -251,13 +269,19 @@ bool ToggleRegistryItem(const StartupItem& item)
     if (setStatus != ERROR_SUCCESS)
     {
         RegCloseKey(target);
-        RegCloseKey(source);
         return false;
     }
 
-    const auto deleteStatus = RegDeleteValueW(source, item.name.c_str());
+    HKEY sourceWrite = nullptr;
+    if (RegOpenKeyExW(item.root, fromKey.c_str(), 0, KEY_SET_VALUE, &sourceWrite) != ERROR_SUCCESS)
+    {
+        RegCloseKey(target);
+        return false;
+    }
+
+    const auto deleteStatus = RegDeleteValueW(sourceWrite, item.name.c_str());
+    RegCloseKey(sourceWrite);
     RegCloseKey(target);
-    RegCloseKey(source);
     return deleteStatus == ERROR_SUCCESS;
 }
 
@@ -282,7 +306,9 @@ void BuildMenus()
     AppendMenuW(startupMenu, MF_STRING, IDM_STARTUP_REFRESH, LoadResString(IDS_MENU_REFRESH).c_str());
     AppendMenuW(startupMenu, MF_SEPARATOR, 0, nullptr);
 
-    for (size_t i = 0; i < g_items.size(); ++i)
+    const size_t maxItems = static_cast<size_t>(UINT_MAX) - static_cast<size_t>(IDM_STARTUP_ITEM_BASE) + 1;
+    const size_t itemsToShow = (std::min)(g_items.size(), maxItems);
+    for (size_t i = 0; i < itemsToShow; ++i)
     {
         const auto& item = g_items[i];
         std::wstring title = item.enabled ? LoadResString(IDS_ITEM_ENABLED) : LoadResString(IDS_ITEM_DISABLED);
@@ -344,6 +370,11 @@ void LaunchRegistryCommand(const std::wstring& rawCommand)
         CloseHandle(pi.hThread);
         CloseHandle(pi.hProcess);
     }
+    else
+    {
+        const std::wstring message = std::wstring(L"Sparkborne failed to start command: ") + command + L"\n";
+        OutputDebugStringW(message.c_str());
+    }
 }
 
 void LaunchEnabledStartupItems()
@@ -362,7 +393,12 @@ void LaunchEnabledStartupItems()
         }
         else
         {
-            ShellExecuteW(nullptr, L"open", item.shortcutPath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+            const HINSTANCE openResult = ShellExecuteW(nullptr, L"open", item.shortcutPath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+            if (reinterpret_cast<INT_PTR>(openResult) <= 32)
+            {
+                const std::wstring message = std::wstring(L"Sparkborne failed to launch shortcut: ") + item.shortcutPath + L"\n";
+                OutputDebugStringW(message.c_str());
+            }
         }
     }
 }
@@ -397,6 +433,10 @@ LRESULT CALLBACK WebWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
         g_webBrowserHost = CreateWindowW(L"AtlAxWin", kMoreWorksUrl, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hwnd, nullptr, g_instance, nullptr);
+        if (!g_webBrowserHost)
+        {
+            return -1;
+        }
         return 0;
     case WM_SIZE:
         if (g_webBrowserHost)
@@ -436,10 +476,14 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             ShowWebWindow();
             return 0;
         }
-        if (id >= IDM_STARTUP_ITEM_BASE && id < IDM_STARTUP_ITEM_BASE + g_items.size())
+        if (id >= IDM_STARTUP_ITEM_BASE)
         {
-            ShowItemDetails(hwnd, g_items[id - IDM_STARTUP_ITEM_BASE]);
-            return 0;
+            const size_t index = static_cast<size_t>(id - IDM_STARTUP_ITEM_BASE);
+            if (index < g_items.size())
+            {
+                ShowItemDetails(hwnd, g_items[index]);
+                return 0;
+            }
         }
         break;
     }
@@ -512,14 +556,25 @@ bool RegisterWindowClasses()
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
 {
     g_instance = instance;
-    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-    AtlAxWinInit();
+    const HRESULT initResult = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (FAILED(initResult))
+    {
+        MessageBoxW(nullptr, LoadResString(IDS_COM_INIT_FAILED).c_str(), LoadResString(IDS_ERROR_TITLE).c_str(), MB_ICONERROR | MB_OK);
+        return 1;
+    }
 
     if (IsStartupMode())
     {
         LaunchEnabledStartupItems();
         CoUninitialize();
         return 0;
+    }
+
+    if (!AtlAxWinInit())
+    {
+        MessageBoxW(nullptr, LoadResString(IDS_ATL_INIT_FAILED).c_str(), LoadResString(IDS_ERROR_TITLE).c_str(), MB_ICONERROR | MB_OK);
+        CoUninitialize();
+        return 1;
     }
 
     if (!RegisterWindowClasses())

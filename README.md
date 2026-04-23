@@ -18,4 +18,4 @@ A Win32 startup program manager for Windows RT-style environments.
 
 ## Build
 
-Open `/home/runner/work/Sparkborne/Sparkborne/Sparkborne.sln` with Visual Studio 2022 and build `Sparkborne`.
+Open `Sparkborne.sln` with Visual Studio 2022 and build `Sparkborne`.
