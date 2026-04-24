@@ -11,7 +11,7 @@ BEGIN
     IDS_MENU_REFRESH        "Refresh"
     IDS_MENU_HELP           "Help"
     IDS_MENU_MORE_WORKS     "More things made by me..."
-    IDS_WINDOW_HINT         "Select startup items from the menu to view details and enable/disable."
+    IDS_WINDOW_HINT         "Select startup items from the left list to view details and actions."
     IDS_ITEM_ENABLED        "Enabled"
     IDS_ITEM_DISABLED       "Disabled"
     IDS_ITEM_TYPE_REGISTRY  "Registry"
@@ -28,6 +28,13 @@ BEGIN
     IDS_REGISTRY_HKLM_DISABLED "HKLM -Run"
     IDS_COM_INIT_FAILED     "Failed to initialize COM runtime."
     IDS_ATL_INIT_FAILED     "Failed to initialize ATL ActiveX hosting."
+    IDS_PANEL_ITEM_DETAILS_FMT "Name: %s\r\nType: %s\r\nSource: %s\r\nPath/Command: %s\r\nStatus: %s"
+    IDS_PANEL_NO_SELECTION  "Select a startup item from the list on the left."
+    IDS_BUTTON_ENABLE       "Enable"
+    IDS_BUTTON_DISABLE      "Disable"
+    IDS_BUTTON_DELETE       "Delete"
+    IDS_BUTTON_LAUNCH_NOW   "Launch now"
+    IDS_CONFIRM_DELETE      "Delete this startup item?"
 END
 
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -40,7 +47,7 @@ BEGIN
     IDS_MENU_REFRESH        "刷新"
     IDS_MENU_HELP           "帮助"
     IDS_MENU_MORE_WORKS     "更多我做的东西..."
-    IDS_WINDOW_HINT         "在菜单中选择启动项可查看详情并启用/禁用。"
+    IDS_WINDOW_HINT         "在左侧列表中选择启动项可查看详情并执行操作。"
     IDS_ITEM_ENABLED        "已启用"
     IDS_ITEM_DISABLED       "已禁用"
     IDS_ITEM_TYPE_REGISTRY  "注册表"
@@ -57,4 +64,11 @@ BEGIN
     IDS_REGISTRY_HKLM_DISABLED "HKLM -Run"
     IDS_COM_INIT_FAILED     "初始化 COM 运行时失败。"
     IDS_ATL_INIT_FAILED     "初始化 ATL ActiveX 宿主失败。"
+    IDS_PANEL_ITEM_DETAILS_FMT "名称：%s\r\n类型：%s\r\n来源：%s\r\n路径/命令：%s\r\n状态：%s"
+    IDS_PANEL_NO_SELECTION  "请在左侧列表中选择一个启动项。"
+    IDS_BUTTON_ENABLE       "启用"
+    IDS_BUTTON_DISABLE      "禁用"
+    IDS_BUTTON_DELETE       "删除"
+    IDS_BUTTON_LAUNCH_NOW   "立即启动"
+    IDS_CONFIRM_DELETE      "是否删除该启动项？"
 END

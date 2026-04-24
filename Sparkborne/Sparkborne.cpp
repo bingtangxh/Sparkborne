@@ -4,6 +4,12 @@ HINSTANCE btxh::g_instance=nullptr;
 HWND btxh::g_mainWindow=nullptr;
 HWND btxh::g_webWindow=nullptr;
 HWND btxh::g_webBrowserHost=nullptr;
+HWND btxh::g_startupList=nullptr;
+HWND btxh::g_itemDetails=nullptr;
+HWND btxh::g_enableButton=nullptr;
+HWND btxh::g_disableButton=nullptr;
+HWND btxh::g_deleteButton=nullptr;
+HWND btxh::g_launchNowButton=nullptr;
 std::vector<btxh::StartupItem> btxh::g_items;
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
@@ -307,18 +313,6 @@ void btxh::BuildMenus()
 
     AppendMenuW(fileMenu,MF_STRING,IDM_FILE_EXIT,LoadResString(IDS_MENU_EXIT).c_str());
     AppendMenuW(startupMenu,MF_STRING,IDM_STARTUP_REFRESH,LoadResString(IDS_MENU_REFRESH).c_str());
-    AppendMenuW(startupMenu,MF_SEPARATOR,0,nullptr);
-
-    const size_t maxItems=static_cast<size_t>(UINT_MAX)-static_cast<size_t>(IDM_STARTUP_ITEM_BASE)+1;
-    const size_t itemsToShow=(std::min) (g_items.size(),maxItems);
-    for (size_t i=0; i<itemsToShow; ++i)
-    {
-        const auto& item=g_items[i];
-        std::wstring title=item.enabled ? LoadResString(IDS_ITEM_ENABLED) : LoadResString(IDS_ITEM_DISABLED);
-        title+=L": ";
-        title+=item.name;
-        AppendMenuW(startupMenu,MF_STRING,IDM_STARTUP_ITEM_BASE+static_cast<UINT>(i),title.c_str());
-    }
 
     AppendMenuW(helpMenu,MF_STRING,IDM_HELP_MORE_WORKS,LoadResString(IDS_MENU_MORE_WORKS).c_str());
 
@@ -330,26 +324,219 @@ void btxh::BuildMenus()
     DrawMenuBar(g_mainWindow);
 }
 
-void btxh::ShowItemDetails(HWND owner,const StartupItem& item)
+void btxh::RebuildStartupListBox()
 {
-    const std::wstring typeText=item.type==ItemType::Registry ? LoadResString(IDS_ITEM_TYPE_REGISTRY) : LoadResString(IDS_ITEM_TYPE_SHORTCUT);
-    const std::wstring stateText=item.enabled ? LoadResString(IDS_ITEM_ENABLED) : LoadResString(IDS_ITEM_DISABLED);
-    const std::wstring prompt=item.enabled ? LoadResString(IDS_DISABLE_ACTION) : LoadResString(IDS_ENABLE_ACTION);
-    const std::wstring details=FormatString(IDS_ITEM_DETAILS_FMT,{ item.name, typeText, item.source, item.command, stateText, prompt });
-
-    if (MessageBoxW(owner,details.c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_YESNO)!=IDYES)
+    if (!g_startupList)
     {
         return;
+    }
+
+    const int selected=GetSelectedItemIndex();
+    SendMessageW(g_startupList,LB_RESETCONTENT,0,0);
+    for (const auto& item:g_items)
+    {
+        std::wstring title=item.enabled ? LoadResString(IDS_ITEM_ENABLED) : LoadResString(IDS_ITEM_DISABLED);
+        title+=L": ";
+        title+=item.name;
+        SendMessageW(g_startupList,LB_ADDSTRING,0,reinterpret_cast<LPARAM>(title.c_str()));
+    }
+    if (selected>=0&&selected<static_cast<int>(g_items.size()))
+    {
+        SendMessageW(g_startupList,LB_SETCURSEL,selected,0);
+    } else if (!g_items.empty())
+    {
+        SendMessageW(g_startupList,LB_SETCURSEL,0,0);
+    }
+}
+
+int btxh::GetSelectedItemIndex()
+{
+    if (!g_startupList)
+    {
+        return LB_ERR;
+    }
+    return static_cast<int>(SendMessageW(g_startupList,LB_GETCURSEL,0,0));
+}
+
+void btxh::UpdateDetailsPanel()
+{
+    const int selected=GetSelectedItemIndex();
+    if (selected==LB_ERR||selected<0||selected>=static_cast<int>(g_items.size()))
+    {
+        if (g_itemDetails)
+        {
+            SetWindowTextW(g_itemDetails,LoadResString(IDS_PANEL_NO_SELECTION).c_str());
+        }
+        if (g_enableButton){ EnableWindow(g_enableButton,FALSE); }
+        if (g_disableButton){ EnableWindow(g_disableButton,FALSE); }
+        if (g_deleteButton){ EnableWindow(g_deleteButton,FALSE); }
+        if (g_launchNowButton){ EnableWindow(g_launchNowButton,FALSE); }
+        return;
+    }
+
+    const auto& item=g_items[selected];
+    const std::wstring typeText=item.type==ItemType::Registry ? LoadResString(IDS_ITEM_TYPE_REGISTRY) : LoadResString(IDS_ITEM_TYPE_SHORTCUT);
+    const std::wstring stateText=item.enabled ? LoadResString(IDS_ITEM_ENABLED) : LoadResString(IDS_ITEM_DISABLED);
+    const std::wstring details=FormatString(IDS_PANEL_ITEM_DETAILS_FMT,{ item.name, typeText, item.source, item.command, stateText });
+    if (g_itemDetails)
+    {
+        SetWindowTextW(g_itemDetails,details.c_str());
+    }
+    if (g_enableButton){ EnableWindow(g_enableButton,!item.enabled); }
+    if (g_disableButton){ EnableWindow(g_disableButton,item.enabled); }
+    if (g_deleteButton){ EnableWindow(g_deleteButton,TRUE); }
+    if (g_launchNowButton){ EnableWindow(g_launchNowButton,TRUE); }
+}
+
+void btxh::UpdateLayout(HWND hwnd)
+{
+    RECT rc{};
+    GetClientRect(hwnd,&rc);
+    const int width=rc.right-rc.left;
+    const int height=rc.bottom-rc.top;
+    const int margin=10;
+    const int listWidth=(width*35)/100;
+    const int left=margin;
+    const int top=margin;
+    const int usableHeight=height-margin*2;
+    const int rightPanelLeft=left+listWidth+margin;
+    const int rightPanelWidth=width-rightPanelLeft-margin;
+    const int buttonHeight=30;
+    const int buttonSpacing=8;
+    const int buttonTop=height-margin-buttonHeight;
+    const int buttonWidth=(rightPanelWidth-buttonSpacing*3)/4;
+    const int detailsHeight=buttonTop-top-margin;
+
+    if (g_startupList)
+    {
+        MoveWindow(g_startupList,left,top,listWidth,usableHeight,TRUE);
+    }
+    if (g_itemDetails)
+    {
+        MoveWindow(g_itemDetails,rightPanelLeft,top,rightPanelWidth,detailsHeight,TRUE);
+    }
+    if (g_enableButton)
+    {
+        MoveWindow(g_enableButton,rightPanelLeft,buttonTop,buttonWidth,buttonHeight,TRUE);
+    }
+    if (g_disableButton)
+    {
+        MoveWindow(g_disableButton,rightPanelLeft+buttonWidth+buttonSpacing,buttonTop,buttonWidth,buttonHeight,TRUE);
+    }
+    if (g_deleteButton)
+    {
+        MoveWindow(g_deleteButton,rightPanelLeft+(buttonWidth+buttonSpacing)*2,buttonTop,buttonWidth,buttonHeight,TRUE);
+    }
+    if (g_launchNowButton)
+    {
+        MoveWindow(g_launchNowButton,rightPanelLeft+(buttonWidth+buttonSpacing)*3,buttonTop,buttonWidth,buttonHeight,TRUE);
+    }
+}
+
+bool btxh::ToggleSelectedItem(HWND owner,bool enable)
+{
+    const int selected=GetSelectedItemIndex();
+    if (selected==LB_ERR||selected<0||selected>=static_cast<int>(g_items.size()))
+    {
+        return false;
+    }
+
+    const auto& item=g_items[selected];
+    if (item.enabled==enable)
+    {
+        return true;
     }
 
     const bool ok=item.type==ItemType::Registry ? ToggleRegistryItem(item) : ToggleShortcutItem(item);
     if (!ok)
     {
         ShowError(owner,GetLastError());
+        return false;
     }
 
     ReloadStartupItems();
-    BuildMenus();
+    RebuildStartupListBox();
+    if (selected>=0&&selected<static_cast<int>(g_items.size()))
+    {
+        SendMessageW(g_startupList,LB_SETCURSEL,selected,0);
+    }
+    UpdateDetailsPanel();
+    return true;
+}
+
+bool btxh::DeleteRegistryItem(const StartupItem& item)
+{
+    HKEY key=nullptr;
+    if (RegOpenKeyExW(item.root,item.keyPath.c_str(),0,KEY_SET_VALUE,&key)!=ERROR_SUCCESS)
+    {
+        return false;
+    }
+    const auto status=RegDeleteValueW(key,item.name.c_str());
+    RegCloseKey(key);
+    return status==ERROR_SUCCESS;
+}
+
+bool btxh::DeleteShortcutItem(const StartupItem& item)
+{
+    std::error_code ec;
+    return std::filesystem::remove(item.shortcutPath,ec)&&!ec;
+}
+
+bool btxh::DeleteStartupItem(const StartupItem& item)
+{
+    return item.type==ItemType::Registry ? DeleteRegistryItem(item) : DeleteShortcutItem(item);
+}
+
+bool btxh::DeleteSelectedItem(HWND owner)
+{
+    const int selected=GetSelectedItemIndex();
+    if (selected==LB_ERR||selected<0||selected>=static_cast<int>(g_items.size()))
+    {
+        return false;
+    }
+    const auto item=g_items[selected];
+    if (MessageBoxW(owner,LoadResString(IDS_CONFIRM_DELETE).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONQUESTION|MB_YESNO)!=IDYES)
+    {
+        return false;
+    }
+    if (!DeleteStartupItem(item))
+    {
+        ShowError(owner,GetLastError());
+        return false;
+    }
+
+    ReloadStartupItems();
+    RebuildStartupListBox();
+    if (selected<static_cast<int>(g_items.size()))
+    {
+        SendMessageW(g_startupList,LB_SETCURSEL,selected,0);
+    } else if (selected>0&&selected-1<static_cast<int>(g_items.size()))
+    {
+        SendMessageW(g_startupList,LB_SETCURSEL,selected-1,0);
+    }
+    UpdateDetailsPanel();
+    return true;
+}
+
+void btxh::LaunchSelectedItem()
+{
+    const int selected=GetSelectedItemIndex();
+    if (selected==LB_ERR||selected<0||selected>=static_cast<int>(g_items.size()))
+    {
+        return;
+    }
+    const auto& item=g_items[selected];
+    if (item.type==ItemType::Registry)
+    {
+        LaunchRegistryCommand(item.command);
+        return;
+    }
+    const HINSTANCE openResult=ShellExecuteW(nullptr,L"open",item.shortcutPath.c_str(),nullptr,nullptr,SW_SHOWNORMAL);
+    if (reinterpret_cast<INT_PTR>(openResult)<=32)
+    {
+        const std::wstring message=std::wstring(L"Sparkborne failed to launch shortcut: ")+item.shortcutPath+L"\n";
+        OutputDebugStringW(message.c_str());
+    }
 }
 
 void btxh::LaunchRegistryCommand(const std::wstring& rawCommand)
@@ -432,9 +619,23 @@ LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lPara
 {
     switch (msg)
     {
+        case WM_CREATE:
+        {
+            g_startupList=CreateWindowExW(WS_EX_CLIENTEDGE,L"LISTBOX",nullptr,WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_STARTUP_LIST),g_instance,nullptr);
+            g_itemDetails=CreateWindowExW(WS_EX_CLIENTEDGE,L"EDIT",nullptr,WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_ITEM_DETAILS),g_instance,nullptr);
+            g_enableButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_ENABLE).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_ENABLE),g_instance,nullptr);
+            g_disableButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_DISABLE).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_DISABLE),g_instance,nullptr);
+            g_deleteButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_DELETE).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_DELETE),g_instance,nullptr);
+            g_launchNowButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_LAUNCH_NOW).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_LAUNCH_NOW),g_instance,nullptr);
+            RebuildStartupListBox();
+            UpdateLayout(hwnd);
+            UpdateDetailsPanel();
+            return 0;
+        }
         case WM_COMMAND:
         {
             const UINT id=LOWORD(wParam);
+            const UINT code=HIWORD(wParam);
             if (id==IDM_FILE_EXIT)
             {
                 PostQuitMessage(0);
@@ -443,7 +644,8 @@ LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lPara
             if (id==IDM_STARTUP_REFRESH)
             {
                 ReloadStartupItems();
-                BuildMenus();
+                RebuildStartupListBox();
+                UpdateDetailsPanel();
                 return 0;
             }
             if (id==IDM_HELP_MORE_WORKS)
@@ -451,26 +653,36 @@ LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lPara
                 ShowWebWindow();
                 return 0;
             }
-            if (id>=IDM_STARTUP_ITEM_BASE)
+            if (id==IDC_STARTUP_LIST&&code==LBN_SELCHANGE)
             {
-                const size_t index=static_cast<size_t>(id-IDM_STARTUP_ITEM_BASE);
-                if (index<g_items.size())
-                {
-                    ShowItemDetails(hwnd,g_items[index]);
-                    return 0;
-                }
+                UpdateDetailsPanel();
+                return 0;
+            }
+            if (id==IDC_BTN_ENABLE)
+            {
+                ToggleSelectedItem(hwnd,true);
+                return 0;
+            }
+            if (id==IDC_BTN_DISABLE)
+            {
+                ToggleSelectedItem(hwnd,false);
+                return 0;
+            }
+            if (id==IDC_BTN_DELETE)
+            {
+                DeleteSelectedItem(hwnd);
+                return 0;
+            }
+            if (id==IDC_BTN_LAUNCH_NOW)
+            {
+                LaunchSelectedItem();
+                return 0;
             }
             break;
         }
-        case WM_PAINT:
+        case WM_SIZE:
         {
-            PAINTSTRUCT ps{};
-            HDC hdc=BeginPaint(hwnd,&ps);
-            RECT rect{};
-            GetClientRect(hwnd,&rect);
-            FillRect(hdc,&rect,reinterpret_cast<HBRUSH>(COLOR_WINDOW+1));
-            DrawTextW(hdc,LoadResString(IDS_WINDOW_HINT).c_str(),-1,&rect,DT_CENTER|DT_VCENTER|DT_WORDBREAK);
-            EndPaint(hwnd,&ps);
+            UpdateLayout(hwnd);
             return 0;
         }
         case WM_DESTROY:

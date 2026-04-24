@@ -46,6 +46,12 @@ namespace btxh
     extern HWND g_mainWindow;
     extern HWND g_webWindow;
     extern HWND g_webBrowserHost;
+    extern HWND g_startupList;
+    extern HWND g_itemDetails;
+    extern HWND g_enableButton;
+    extern HWND g_disableButton;
+    extern HWND g_deleteButton;
+    extern HWND g_launchNowButton;
     extern std::vector<StartupItem> g_items;
 
     std::wstring LoadResString(UINT id);
@@ -59,8 +65,17 @@ namespace btxh
     void ReloadStartupItems();
     bool ToggleRegistryItem(const StartupItem& item);
     bool ToggleShortcutItem(const StartupItem& item);
+    bool DeleteRegistryItem(const StartupItem& item);
+    bool DeleteShortcutItem(const StartupItem& item);
+    bool DeleteStartupItem(const StartupItem& item);
     void BuildMenus();
-    void ShowItemDetails(HWND owner,const StartupItem& item);
+    void RebuildStartupListBox();
+    void UpdateDetailsPanel();
+    void UpdateLayout(HWND hwnd);
+    int GetSelectedItemIndex();
+    bool ToggleSelectedItem(HWND owner,bool enable);
+    bool DeleteSelectedItem(HWND owner);
+    void LaunchSelectedItem();
     void LaunchRegistryCommand(const std::wstring& rawCommand);
     void LaunchEnabledStartupItems();
     void ShowWebWindow();
