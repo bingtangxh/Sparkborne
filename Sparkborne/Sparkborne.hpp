@@ -10,6 +10,7 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <shellapi.h>
+#include <uxtheme.h>
 
 #include <algorithm>
 #include <array>
@@ -83,6 +84,7 @@ namespace btxh
     LRESULT CALLBACK MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam);
     bool IsStartupMode();
     bool RegisterWindowClasses();
+    void ApplyChineseUiFallback();
 
 } // namespace
 

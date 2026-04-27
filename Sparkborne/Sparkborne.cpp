@@ -15,6 +15,7 @@ std::vector<btxh::StartupItem> btxh::g_items;
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
 {
     btxh::g_instance = instance;
+    btxh::ApplyChineseUiFallback();
     const HRESULT initResult = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     if (FAILED(initResult))
     {
@@ -44,11 +45,18 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
 
     btxh::ReloadStartupItems();
 
+    constexpr DWORD kMainWindowStyle=WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX|WS_VISIBLE;
+    constexpr int kClientWidth=960;
+    constexpr int kClientHeight=680;
+
+    RECT windowRect{ 0,0,kClientWidth,kClientHeight };
+    AdjustWindowRectEx(&windowRect,kMainWindowStyle,TRUE,0);
+
     btxh::g_mainWindow = CreateWindowExW(
         0,
         btxh::kMainClassName,
         btxh::LoadResString(IDS_APP_TITLE).c_str(),
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        kMainWindowStyle  | WS_VISIBLE,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         900,
@@ -239,71 +247,6 @@ void btxh::ReloadStartupItems()
     AppendShortcutItems(GetKnownFolderPath(FOLDERID_Startup));
 }
 
-bool btxh::ToggleRegistryItem(const StartupItem& item)
-{
-    const bool enable=!item.enabled;
-    const std::wstring fromKey=enable ? kDisabledRunSubkey : kRunSubkey;
-    const std::wstring toKey=enable ? kRunSubkey : kDisabledRunSubkey;
-
-    HKEY sourceRead=nullptr;
-    if (RegOpenKeyExW(item.root,fromKey.c_str(),0,KEY_QUERY_VALUE,&sourceRead)!=ERROR_SUCCESS)
-    {
-        return false;
-    }
-
-    DWORD type=0;
-    DWORD dataSize=0;
-    if (RegQueryValueExW(sourceRead,item.name.c_str(),nullptr,&type,nullptr,&dataSize)!=ERROR_SUCCESS)
-    {
-        RegCloseKey(sourceRead);
-        return false;
-    }
-
-    std::vector<BYTE> data(dataSize);
-    if (RegQueryValueExW(sourceRead,item.name.c_str(),nullptr,&type,data.data(),&dataSize)!=ERROR_SUCCESS)
-    {
-        RegCloseKey(sourceRead);
-        return false;
-    }
-    RegCloseKey(sourceRead);
-
-    HKEY target=nullptr;
-    DWORD disposition=0;
-    if (RegCreateKeyExW(item.root,toKey.c_str(),0,nullptr,0,KEY_SET_VALUE,nullptr,&target,&disposition)!=ERROR_SUCCESS)
-    {
-        return false;
-    }
-
-    const auto setStatus=RegSetValueExW(target,item.name.c_str(),0,type,data.data(),dataSize);
-    if (setStatus!=ERROR_SUCCESS)
-    {
-        RegCloseKey(target);
-        return false;
-    }
-
-    HKEY sourceWrite=nullptr;
-    if (RegOpenKeyExW(item.root,fromKey.c_str(),0,KEY_SET_VALUE,&sourceWrite)!=ERROR_SUCCESS)
-    {
-        RegCloseKey(target);
-        return false;
-    }
-
-    const auto deleteStatus=RegDeleteValueW(sourceWrite,item.name.c_str());
-    RegCloseKey(sourceWrite);
-    RegCloseKey(target);
-    return deleteStatus==ERROR_SUCCESS;
-}
-
-bool btxh::ToggleShortcutItem(const StartupItem& item)
-{
-    const std::filesystem::path sourcePath(item.shortcutPath);
-    std::filesystem::path targetPath=sourcePath;
-    targetPath.replace_extension(item.enabled ? L".dis" : L".lnk");
-    std::error_code ec;
-    std::filesystem::rename(sourcePath,targetPath,ec);
-    return !ec;
-}
-
 void btxh::BuildMenus()
 {
     HMENU menuBar=CreateMenu();
@@ -464,108 +407,6 @@ bool btxh::ToggleSelectedItem(HWND owner,bool enable)
     return true;
 }
 
-bool btxh::DeleteRegistryItem(const StartupItem& item)
-{
-    HKEY key=nullptr;
-    if (RegOpenKeyExW(item.root,item.keyPath.c_str(),0,KEY_SET_VALUE,&key)!=ERROR_SUCCESS)
-    {
-        return false;
-    }
-    const auto status=RegDeleteValueW(key,item.name.c_str());
-    RegCloseKey(key);
-    return status==ERROR_SUCCESS;
-}
-
-bool btxh::DeleteShortcutItem(const StartupItem& item)
-{
-    std::error_code ec;
-    return std::filesystem::remove(item.shortcutPath,ec)&&!ec;
-}
-
-bool btxh::DeleteStartupItem(const StartupItem& item)
-{
-    return item.type==ItemType::Registry ? DeleteRegistryItem(item) : DeleteShortcutItem(item);
-}
-
-bool btxh::DeleteSelectedItem(HWND owner)
-{
-    const int selected=GetSelectedItemIndex();
-    if (selected==LB_ERR||selected<0||selected>=static_cast<int>(g_items.size()))
-    {
-        return false;
-    }
-    const auto item=g_items[selected];
-    if (MessageBoxW(owner,LoadResString(IDS_CONFIRM_DELETE).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONQUESTION|MB_YESNO)!=IDYES)
-    {
-        return false;
-    }
-    if (!DeleteStartupItem(item))
-    {
-        ShowError(owner,GetLastError());
-        return false;
-    }
-
-    ReloadStartupItems();
-    RebuildStartupListBox();
-    if (selected<static_cast<int>(g_items.size()))
-    {
-        SendMessageW(g_startupList,LB_SETCURSEL,selected,0);
-    } else if (selected>0&&selected-1<static_cast<int>(g_items.size()))
-    {
-        SendMessageW(g_startupList,LB_SETCURSEL,selected-1,0);
-    }
-    UpdateDetailsPanel();
-    return true;
-}
-
-void btxh::LaunchSelectedItem()
-{
-    const int selected=GetSelectedItemIndex();
-    if (selected==LB_ERR||selected<0||selected>=static_cast<int>(g_items.size()))
-    {
-        return;
-    }
-    const auto& item=g_items[selected];
-    if (item.type==ItemType::Registry)
-    {
-        LaunchRegistryCommand(item.command);
-        return;
-    }
-    const HINSTANCE openResult=ShellExecuteW(nullptr,L"open",item.shortcutPath.c_str(),nullptr,nullptr,SW_SHOWNORMAL);
-    if (reinterpret_cast<INT_PTR>(openResult)<=32)
-    {
-        const std::wstring message=std::wstring(L"Sparkborne failed to launch shortcut: ")+item.shortcutPath+L"\n";
-        OutputDebugStringW(message.c_str());
-    }
-}
-
-void btxh::LaunchRegistryCommand(const std::wstring& rawCommand)
-{
-    std::wstring command=rawCommand;
-    std::array<wchar_t,4096> expanded{};
-    const DWORD expandedLen=ExpandEnvironmentStringsW(rawCommand.c_str(),expanded.data(),static_cast<DWORD>(expanded.size()));
-    if (expandedLen>0&&expandedLen<expanded.size())
-    {
-        command.assign(expanded.data(),expandedLen-1);
-    }
-
-    STARTUPINFOW si{};
-    si.cb=sizeof(si);
-    PROCESS_INFORMATION pi{};
-
-    std::vector<wchar_t> mutableCommand(command.begin(),command.end());
-    mutableCommand.push_back(L'\0');
-    if (CreateProcessW(nullptr,mutableCommand.data(),nullptr,nullptr,FALSE,0,nullptr,nullptr,&si,&pi))
-    {
-        CloseHandle(pi.hThread);
-        CloseHandle(pi.hProcess);
-    } else
-    {
-        const std::wstring message=std::wstring(L"Sparkborne failed to start command: ")+command+L"\n";
-        OutputDebugStringW(message.c_str());
-    }
-}
-
 void btxh::ShowWebWindow()
 {    
     if (g_webWindow&&IsWindow(g_webWindow))
@@ -587,111 +428,6 @@ void btxh::ShowWebWindow()
         nullptr,
         g_instance,
         nullptr);
-}
-
-LRESULT CALLBACK btxh::WebWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
-{
-    switch (msg)
-    {
-        case WM_CREATE:
-            g_webBrowserHost=CreateWindowW(L"AtlAxWin",kMoreWorksUrl,WS_CHILD|WS_VISIBLE,0,0,0,0,hwnd,nullptr,g_instance,nullptr);
-            if (!g_webBrowserHost)
-            {
-                return -1;
-            }
-            return 0;
-        case WM_SIZE:
-            if (g_webBrowserHost)
-            {
-                MoveWindow(g_webBrowserHost,0,0,LOWORD(lParam),HIWORD(lParam),TRUE);
-            }
-            return 0;
-        case WM_DESTROY:
-            g_webBrowserHost=nullptr;
-            g_webWindow=nullptr;
-            return 0;
-        default:
-            return DefWindowProcW(hwnd,msg,wParam,lParam);
-    }
-}
-
-LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
-{
-    switch (msg)
-    {
-        case WM_CREATE:
-        {
-            g_startupList=CreateWindowExW(WS_EX_CLIENTEDGE,L"LISTBOX",nullptr,WS_CHILD|WS_VISIBLE|WS_VSCROLL|LBS_NOTIFY|LBS_NOINTEGRALHEIGHT,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_STARTUP_LIST),g_instance,nullptr);
-            g_itemDetails=CreateWindowExW(WS_EX_CLIENTEDGE,L"EDIT",nullptr,WS_CHILD|WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_ITEM_DETAILS),g_instance,nullptr);
-            g_enableButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_ENABLE).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_ENABLE),g_instance,nullptr);
-            g_disableButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_DISABLE).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_DISABLE),g_instance,nullptr);
-            g_deleteButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_DELETE).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_DELETE),g_instance,nullptr);
-            g_launchNowButton=CreateWindowW(L"BUTTON",LoadResString(IDS_BUTTON_LAUNCH_NOW).c_str(),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,0,0,0,0,hwnd,reinterpret_cast<HMENU>(IDC_BTN_LAUNCH_NOW),g_instance,nullptr);
-            RebuildStartupListBox();
-            UpdateLayout(hwnd);
-            UpdateDetailsPanel();
-            return 0;
-        }
-        case WM_COMMAND:
-        {
-            const UINT id=LOWORD(wParam);
-            const UINT code=HIWORD(wParam);
-            if (id==IDM_FILE_EXIT)
-            {
-                PostQuitMessage(0);
-                return 0;
-            }
-            if (id==IDM_STARTUP_REFRESH)
-            {
-                ReloadStartupItems();
-                RebuildStartupListBox();
-                UpdateDetailsPanel();
-                return 0;
-            }
-            if (id==IDM_HELP_MORE_WORKS)
-            {
-                ShowWebWindow();
-                return 0;
-            }
-            if (id==IDC_STARTUP_LIST&&code==LBN_SELCHANGE)
-            {
-                UpdateDetailsPanel();
-                return 0;
-            }
-            if (id==IDC_BTN_ENABLE)
-            {
-                ToggleSelectedItem(hwnd,true);
-                return 0;
-            }
-            if (id==IDC_BTN_DISABLE)
-            {
-                ToggleSelectedItem(hwnd,false);
-                return 0;
-            }
-            if (id==IDC_BTN_DELETE)
-            {
-                DeleteSelectedItem(hwnd);
-                return 0;
-            }
-            if (id==IDC_BTN_LAUNCH_NOW)
-            {
-                LaunchSelectedItem();
-                return 0;
-            }
-            break;
-        }
-        case WM_SIZE:
-        {
-            UpdateLayout(hwnd);
-            return 0;
-        }
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-        default:
-            break;
-    }
-    return DefWindowProcW(hwnd,msg,wParam,lParam);
 }
 
 bool btxh::IsStartupMode()
@@ -723,7 +459,7 @@ bool btxh::RegisterWindowClasses()
     WNDCLASSEXW mainClass{};
     mainClass.cbSize=sizeof(mainClass);
     mainClass.hInstance=g_instance;
-    mainClass.lpfnWndProc=MainWndProc;
+    mainClass.lpfnWndProc=btxh::MainWndProc;
     mainClass.lpszClassName=kMainClassName;
     mainClass.hCursor=LoadCursorW(nullptr,IDC_ARROW);
     mainClass.hbrBackground=reinterpret_cast<HBRUSH>(COLOR_WINDOW+1);
@@ -738,3 +474,4 @@ bool btxh::RegisterWindowClasses()
     webClass.lpszClassName=kWebClassName;
     return RegisterClassExW(&webClass)!=0;
 }
+
