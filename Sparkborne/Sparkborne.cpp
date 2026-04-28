@@ -1,5 +1,12 @@
 #include "Sparkborne.hpp"
 
+namespace
+{
+
+}
+
+ATL::CAtlExeModuleT<btxh::SparkborneAtlModule> _AtlModule;
+
 HINSTANCE btxh::g_instance=nullptr;
 HWND btxh::g_mainWindow=nullptr;
 HWND btxh::g_webWindow=nullptr;
@@ -12,9 +19,15 @@ HWND btxh::g_deleteButton=nullptr;
 HWND btxh::g_launchNowButton=nullptr;
 std::vector<btxh::StartupItem> btxh::g_items;
 
-int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPWSTR    lpCmdLine,
+                     _In_ int       nCmdShow)
 {
-    btxh::g_instance = instance;
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+
+    btxh::g_instance = hInstance;
     btxh::ApplyChineseUiFallback();
     const HRESULT initResult = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     if (FAILED(initResult))
@@ -30,15 +43,26 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
         return 0;
     }
 
-    if (!AtlAxWinInit())
+    const HRESULT atlModuleResult=// _AtlModule.Init(nullptr,hInstance);
+    _AtlModule.InitializeCom();
+    if (FAILED(atlModuleResult)&&0)
     {
         MessageBoxW(nullptr,btxh::LoadResString(IDS_ATL_INIT_FAILED).c_str(),btxh::LoadResString(IDS_ERROR_TITLE).c_str(), MB_ICONERROR | MB_OK);
         CoUninitialize();
         return 1;
     }
 
+    if (!AtlAxWinInit())
+    {
+        MessageBoxW(nullptr,btxh::LoadResString(IDS_ATL_INIT_FAILED).c_str(),btxh::LoadResString(IDS_ERROR_TITLE).c_str(), MB_ICONERROR | MB_OK);
+        _AtlModule.Term();
+        CoUninitialize();
+        return 1;
+    }
+
     if (!btxh::RegisterWindowClasses())
     {
+        _AtlModule.Term();
         CoUninitialize();
         return 1;
     }
@@ -63,11 +87,12 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
         600,
         nullptr,
         nullptr,
-        instance,
+        hInstance,
         nullptr);
 
     if (!btxh::g_mainWindow)
     {
+        _AtlModule.Term();
         CoUninitialize();
         return 1;
     }
@@ -77,15 +102,17 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int nCmdShow)
     UpdateWindow(btxh::g_mainWindow);
 
     MSG msg{};
-    while (GetMessageW(&msg, nullptr, 0, 0) > 0)
+    while (GetMessage(&msg, nullptr, 0, 0) > 0)
     {
         TranslateMessage(&msg);
-        DispatchMessageW(&msg);
+        DispatchMessage(&msg);
     }
 
+    _AtlModule.Term();
     CoUninitialize();
     return static_cast<int>(msg.wParam);
 }
+
 
 std::wstring btxh::GetLastErrorString(DWORD error)
 {
@@ -249,21 +276,31 @@ void btxh::ReloadStartupItems()
 
 void btxh::BuildMenus()
 {
-    HMENU menuBar=CreateMenu();
-    HMENU fileMenu=CreatePopupMenu();
-    HMENU startupMenu=CreatePopupMenu();
-    HMENU helpMenu=CreatePopupMenu();
+    // 优先从资源加载菜单，若加载失败则回退到原来的动态创建（兼容老版）
+    HMENU menuBar = LoadMenuW(g_instance, MAKEINTRESOURCEW(IDR_MAINMENU));
+    if (menuBar)
+    {
+        SetMenu(g_mainWindow, menuBar);
+        DrawMenuBar(g_mainWindow);
+        return;
+    }
 
-    AppendMenuW(fileMenu,MF_STRING,IDM_FILE_EXIT,LoadResString(IDS_MENU_EXIT).c_str());
-    AppendMenuW(startupMenu,MF_STRING,IDM_STARTUP_REFRESH,LoadResString(IDS_MENU_REFRESH).c_str());
+    // 资源不存在时的回退实现（保留原有逻辑）
+    HMENU fileMenu = CreatePopupMenu();
+    HMENU startupMenu = CreatePopupMenu();
+    HMENU helpMenu = CreatePopupMenu();
 
-    AppendMenuW(helpMenu,MF_STRING,IDM_HELP_MORE_WORKS,LoadResString(IDS_MENU_MORE_WORKS).c_str());
+    AppendMenuW(fileMenu, MF_STRING, IDM_FILE_EXIT, LoadResString(IDS_MENU_EXIT).c_str());
+    AppendMenuW(startupMenu, MF_STRING, IDM_STARTUP_REFRESH, LoadResString(IDS_MENU_REFRESH).c_str());
 
-    AppendMenuW(menuBar,MF_POPUP,reinterpret_cast<UINT_PTR>(fileMenu),LoadResString(IDS_MENU_FILE).c_str());
-    AppendMenuW(menuBar,MF_POPUP,reinterpret_cast<UINT_PTR>(startupMenu),LoadResString(IDS_MENU_STARTUP).c_str());
-    AppendMenuW(menuBar,MF_POPUP,reinterpret_cast<UINT_PTR>(helpMenu),LoadResString(IDS_MENU_HELP).c_str());
+    AppendMenuW(helpMenu, MF_STRING, IDM_HELP_MORE_WORKS, LoadResString(IDS_MENU_MORE_WORKS).c_str());
 
-    SetMenu(g_mainWindow,menuBar);
+    menuBar = CreateMenu();
+    AppendMenuW(menuBar, MF_POPUP, reinterpret_cast<UINT_PTR>(fileMenu), LoadResString(IDS_MENU_FILE).c_str());
+    AppendMenuW(menuBar, MF_POPUP, reinterpret_cast<UINT_PTR>(startupMenu), LoadResString(IDS_MENU_STARTUP).c_str());
+    AppendMenuW(menuBar, MF_POPUP, reinterpret_cast<UINT_PTR>(helpMenu), LoadResString(IDS_MENU_HELP).c_str());
+
+    SetMenu(g_mainWindow, menuBar);
     DrawMenuBar(g_mainWindow);
 }
 
@@ -299,36 +336,6 @@ int btxh::GetSelectedItemIndex()
         return LB_ERR;
     }
     return static_cast<int>(SendMessageW(g_startupList,LB_GETCURSEL,0,0));
-}
-
-void btxh::UpdateDetailsPanel()
-{
-    const int selected=GetSelectedItemIndex();
-    if (selected==LB_ERR||selected<0||selected>=static_cast<int>(g_items.size()))
-    {
-        if (g_itemDetails)
-        {
-            SetWindowTextW(g_itemDetails,LoadResString(IDS_PANEL_NO_SELECTION).c_str());
-        }
-        if (g_enableButton){ EnableWindow(g_enableButton,FALSE); }
-        if (g_disableButton){ EnableWindow(g_disableButton,FALSE); }
-        if (g_deleteButton){ EnableWindow(g_deleteButton,FALSE); }
-        if (g_launchNowButton){ EnableWindow(g_launchNowButton,FALSE); }
-        return;
-    }
-
-    const auto& item=g_items[selected];
-    const std::wstring typeText=item.type==ItemType::Registry ? LoadResString(IDS_ITEM_TYPE_REGISTRY) : LoadResString(IDS_ITEM_TYPE_SHORTCUT);
-    const std::wstring stateText=item.enabled ? LoadResString(IDS_ITEM_ENABLED) : LoadResString(IDS_ITEM_DISABLED);
-    const std::wstring details=FormatString(IDS_PANEL_ITEM_DETAILS_FMT,{ item.name, typeText, item.source, item.command, stateText });
-    if (g_itemDetails)
-    {
-        SetWindowTextW(g_itemDetails,details.c_str());
-    }
-    if (g_enableButton){ EnableWindow(g_enableButton,!item.enabled); }
-    if (g_disableButton){ EnableWindow(g_disableButton,item.enabled); }
-    if (g_deleteButton){ EnableWindow(g_deleteButton,TRUE); }
-    if (g_launchNowButton){ EnableWindow(g_launchNowButton,TRUE); }
 }
 
 void btxh::UpdateLayout(HWND hwnd)
@@ -415,6 +422,7 @@ void btxh::ShowWebWindow()
         SetForegroundWindow(g_webWindow);
         return;
     }
+
     g_webWindow=CreateWindowExW(
         WS_EX_TOOLWINDOW,
         kWebClassName,
@@ -428,6 +436,15 @@ void btxh::ShowWebWindow()
         nullptr,
         g_instance,
         nullptr);
+
+    if (!g_webWindow)
+    {
+        ShowError(g_mainWindow,GetLastError());
+        return;
+    }
+
+    ShowWindow(g_webWindow,SW_SHOWNORMAL);
+    UpdateWindow(g_webWindow);
 }
 
 bool btxh::IsStartupMode()

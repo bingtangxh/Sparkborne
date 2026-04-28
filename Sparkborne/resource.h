@@ -793,6 +793,7 @@
 #define VK_NUMPAD5                      0x65
 #define LANG_DIVEHI                     0x65
 #define IDS_APP_TITLE                   101
+#define IDR_MAINMENU                    101
 #define VK_NUMPAD6                      0x66
 #define IDS_MENU_FILE                   102
 #define VK_NUMPAD7                      0x67
@@ -904,6 +905,8 @@
 #define VK_F21                          0x84
 #define WM_NCHITTEST                    0x0084
 #define LANG_ALSATIAN                   0x84
+#define IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE 132
+
 #define VK_F22                          0x85
 #define WM_NCPAINT                      0x0085
 #define LANG_SAKHA                      0x85
@@ -1613,6 +1616,7 @@
 #define IDM_STARTUP_REFRESH             40002
 #define IDM_HELP_MORE_WORKS             40003
 #define IDM_STARTUP_ITEM_BASE           41000
+#define IDM_HELP_ABOUT                  41001
 #define IDC_STARTUP_LIST                42001
 #define IDC_ITEM_DETAILS                42002
 #define IDC_BTN_ENABLE                  42003
@@ -1651,7 +1655,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        101
-#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_COMMAND_VALUE         40002
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

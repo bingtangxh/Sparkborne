@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 #include "resource.h"
-
+#include "framework.h"
 
 namespace btxh
 {
@@ -41,6 +41,10 @@ namespace btxh
         std::wstring command;
         std::wstring source;
         std::wstring shortcutPath;
+    };
+
+    class SparkborneAtlModule: public ATL::CAtlExeModuleT<SparkborneAtlModule>
+    {
     };
 
     extern HINSTANCE g_instance;
@@ -85,6 +89,8 @@ namespace btxh
     bool IsStartupMode();
     bool RegisterWindowClasses();
     void ApplyChineseUiFallback();
+    ATOM MyRegisterClass(HINSTANCE hInstance);
+    INT_PTR CALLBACK About(HWND hDlg,UINT message,WPARAM wParam,LPARAM lParam);
 
 } // namespace
 

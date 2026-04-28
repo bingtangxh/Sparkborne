@@ -75,6 +75,29 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Menu
+//
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "文件"
+    BEGIN
+        MENUITEM "退出",                          IDM_FILE_EXIT
+    END
+    POPUP "启动项"
+    BEGIN
+        MENUITEM "刷新",                          IDM_STARTUP_REFRESH
+    END
+    POPUP "帮助"
+    BEGIN
+        MENUITEM "更多我做的东西...",                  IDM_HELP_MORE_WORKS
+        MENUITEM "关于…",                         IDM_HELP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
@@ -119,6 +142,7 @@ BEGIN
     IDS_BUTTON_DELETE       "删除"
     IDS_BUTTON_LAUNCH_NOW   "立即启动"
     IDS_CONFIRM_DELETE      "是否删除该启动项？"
+    IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE "修改 HKLM 条目需要管理员权限。"
 END
 
 #endif    // 中文(简体) resources
@@ -130,6 +154,29 @@ END
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "File"
+    BEGIN
+        MENUITEM "Exit",                        IDM_FILE_EXIT
+    END
+    POPUP "Startup items"
+    BEGIN
+        MENUITEM "Refresh",                     IDM_STARTUP_REFRESH
+    END
+    POPUP "Help"
+    BEGIN
+        MENUITEM "More things made by me...",   IDM_HELP_MORE_WORKS
+        MENUITEM "About...",                    IDM_HELP_ABOUT
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -178,6 +225,8 @@ BEGIN
     IDS_BUTTON_DELETE       "Delete"
     IDS_BUTTON_LAUNCH_NOW   "Launch now"
     IDS_CONFIRM_DELETE      "Delete this startup item?"
+    IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE 
+                            "Toggling HKLM items needs administrator privilege."
 END
 
 #endif    // 英语(美国) resources

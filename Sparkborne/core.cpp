@@ -7,31 +7,39 @@ bool btxh::ToggleRegistryItem(const StartupItem& item)
     const std::wstring toKey=enable ? kRunSubkey : kDisabledRunSubkey;
 
     HKEY sourceRead=nullptr;
-    if (RegOpenKeyExW(item.root,fromKey.c_str(),0,KEY_QUERY_VALUE,&sourceRead)!=ERROR_SUCCESS)
+    const LSTATUS openSourceStatus=RegOpenKeyExW(item.root,fromKey.c_str(),0,KEY_QUERY_VALUE,&sourceRead);
+    if (openSourceStatus!=ERROR_SUCCESS)
     {
+        SetLastError(static_cast<DWORD>(openSourceStatus));
         return false;
     }
 
     DWORD type=0;
     DWORD dataSize=0;
-    if (RegQueryValueExW(sourceRead,item.name.c_str(),nullptr,&type,nullptr,&dataSize)!=ERROR_SUCCESS)
+    const LSTATUS querySizeStatus=RegQueryValueExW(sourceRead,item.name.c_str(),nullptr,&type,nullptr,&dataSize);
+    if (querySizeStatus!=ERROR_SUCCESS)
     {
         RegCloseKey(sourceRead);
+        SetLastError(static_cast<DWORD>(querySizeStatus));
         return false;
     }
 
     std::vector<BYTE> data(dataSize);
-    if (RegQueryValueExW(sourceRead,item.name.c_str(),nullptr,&type,data.data(),&dataSize)!=ERROR_SUCCESS)
+    const LSTATUS queryDataStatus=RegQueryValueExW(sourceRead,item.name.c_str(),nullptr,&type,data.data(),&dataSize);
+    if (queryDataStatus!=ERROR_SUCCESS)
     {
         RegCloseKey(sourceRead);
+        SetLastError(static_cast<DWORD>(queryDataStatus));
         return false;
     }
     RegCloseKey(sourceRead);
 
     HKEY target=nullptr;
     DWORD disposition=0;
-    if (RegCreateKeyExW(item.root,toKey.c_str(),0,nullptr,0,KEY_SET_VALUE,nullptr,&target,&disposition)!=ERROR_SUCCESS)
+    const LSTATUS createStatus=RegCreateKeyExW(item.root,toKey.c_str(),0,nullptr,0,KEY_SET_VALUE,nullptr,&target,&disposition);
+    if (createStatus!=ERROR_SUCCESS)
     {
+        SetLastError(static_cast<DWORD>(createStatus));
         return false;
     }
 
@@ -39,20 +47,28 @@ bool btxh::ToggleRegistryItem(const StartupItem& item)
     if (setStatus!=ERROR_SUCCESS)
     {
         RegCloseKey(target);
+        SetLastError(static_cast<DWORD>(setStatus));
         return false;
     }
 
     HKEY sourceWrite=nullptr;
-    if (RegOpenKeyExW(item.root,fromKey.c_str(),0,KEY_SET_VALUE,&sourceWrite)!=ERROR_SUCCESS)
+    const LSTATUS openWriteStatus=RegOpenKeyExW(item.root,fromKey.c_str(),0,KEY_SET_VALUE,&sourceWrite);
+    if (openWriteStatus!=ERROR_SUCCESS)
     {
         RegCloseKey(target);
+        SetLastError(static_cast<DWORD>(openWriteStatus));
         return false;
     }
 
     const auto deleteStatus=RegDeleteValueW(sourceWrite,item.name.c_str());
     RegCloseKey(sourceWrite);
     RegCloseKey(target);
-    return deleteStatus==ERROR_SUCCESS;
+    if (deleteStatus!=ERROR_SUCCESS)
+    {
+        SetLastError(static_cast<DWORD>(deleteStatus));
+        return false;
+    }
+    return true;
 }
 
 bool btxh::ToggleShortcutItem(const StartupItem& item)
@@ -69,13 +85,20 @@ bool btxh::ToggleShortcutItem(const StartupItem& item)
 bool btxh::DeleteRegistryItem(const StartupItem& item)
 {
     HKEY key=nullptr;
-    if (RegOpenKeyExW(item.root,item.keyPath.c_str(),0,KEY_SET_VALUE,&key)!=ERROR_SUCCESS)
+    const LSTATUS openStatus=RegOpenKeyExW(item.root,item.keyPath.c_str(),0,KEY_SET_VALUE,&key);
+    if (openStatus!=ERROR_SUCCESS)
     {
+        SetLastError(static_cast<DWORD>(openStatus));
         return false;
     }
     const auto status=RegDeleteValueW(key,item.name.c_str());
     RegCloseKey(key);
-    return status==ERROR_SUCCESS;
+    if (status!=ERROR_SUCCESS)
+    {
+        SetLastError(static_cast<DWORD>(status));
+        return false;
+    }
+    return true;
 }
 
 bool btxh::DeleteShortcutItem(const StartupItem& item)
