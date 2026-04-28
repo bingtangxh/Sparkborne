@@ -36,8 +36,6 @@
 #define _USE_DECLSPECS_FOR_SAL          0
 #define _USE_ATTRIBUTES_FOR_SAL         0
 #define __drv_typeConst                 0
-#define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
-#define MINIMUM_RESERVED_MANIFEST_RESOURCE_ID 1
 #define SW_SHOWNORMAL                   1
 #define SW_NORMAL                       1
 #define SHOW_OPENWINDOW                 1
@@ -220,7 +218,6 @@
 #define VFF_CURNEDEST                   0x0001
 #define VIFF_FORCEINSTALL               0x0001
 #define WINAPI_FAMILY_PC_APP            2
-#define ISOLATIONAWARE_MANIFEST_RESOURCE_ID 2
 #define SW_SHOWMINIMIZED                2
 #define SHOW_ICONWINDOW                 2
 #define SW_OTHERZOOM                    2
@@ -309,7 +306,6 @@
 #define VFF_FILEINUSE                   0x0002
 #define VIFF_DONTDELETEOLD              0x0002
 #define WINAPI_FAMILY_PHONE_APP         3
-#define ISOLATIONAWARE_NOSTATICIMPORT_MANIFEST_RESOURCE_ID 3
 #define SW_SHOWMAXIMIZED                3
 #define SW_MAXIMIZE                     3
 #define SHOW_FULLSCREEN                 3
@@ -343,7 +339,6 @@
 #define SORT_CHINESE_BOPOMOFO           0x3
 #define __drv_typeExpr                  3
 #define WINAPI_FAMILY_SYSTEM            4
-#define ISOLATIONPOLICY_MANIFEST_RESOURCE_ID 4
 #define SW_SHOWNOACTIVATE               4
 #define SHOW_OPENNOACTIVATE             4
 #define SW_OTHERUNZOOM                  4
@@ -393,7 +388,6 @@
 #define SORT_CHINESE_RADICALSTROKE      0x4
 #define VFF_BUFFTOOSMALL                0x0004
 #define WINAPI_FAMILY_SERVER            5
-#define ISOLATIONPOLICY_BROWSER_MANIFEST_RESOURCE_ID 5
 #define SW_SHOW                         5
 #define VK_XBUTTON1                     0x05
 #define WM_SIZE                         0x0005
@@ -540,7 +534,6 @@
 #define LANG_ICELANDIC                  0x0f
 #define SUBLANG_ARABIC_BAHRAIN          0x0f
 #define SUBLANG_SPANISH_PARAGUAY        0x0f
-#define MAXIMUM_RESERVED_MANIFEST_RESOURCE_ID 16
 #define VK_SHIFT                        0x10
 #define WM_CLOSE                        0x0010
 #define HTBOTTOMLEFT                    16
@@ -604,7 +597,6 @@
 #define LANG_PORTUGUESE                 0x16
 #define VK_JUNJA                        0x17
 #define LANG_ROMANSH                    0x17
-#define RT_MANIFEST                     24
 #define VK_FINAL                        0x18
 #define WM_SHOWWINDOW                   0x0018
 #define LANG_ROMANIAN                   0x18
@@ -924,24 +916,43 @@
 #define LANG_WOLOF                      0x88
 #define IDS_CREATE_TASK_FAILED          136
 #define VK_NAVIGATION_MENU              0x89
+#define IDS_CANNOT_GET_IDENT_PTR        137
 #define VK_NAVIGATION_UP                0x8A
+#define IDS_CANNOT_PUT_IDENT_PTR        138
 #define VK_NAVIGATION_DOWN              0x8B
+#define IDS_CANNOT_GET_SETTINGS_PTR     139
 #define VK_NAVIGATION_LEFT              0x8C
 #define LANG_DARI                       0x8c
+#define IDS_CANNOT_PUT_SETTINGS_PTR     140
 #define VK_NAVIGATION_RIGHT             0x8D
+#define IDS_CANNOT_GET_TRIGGER_COLLECTION 141
 #define VK_NAVIGATION_ACCEPT            0x8E
 #define CF_DSPENHMETAFILE               0x008E
+#define IDS_CANNOT_CREATE_TRIGGER       142
 #define VK_NAVIGATION_CANCEL            0x8F
+#define IDS_CANNOT_QUERY_TRIGGER        143
 #define VK_NUMLOCK                      0x90
+#define IDS_TRIGGER_ID_SET_FAILED       144
 #define VK_SCROLL                       0x91
 #define LANG_SCOTTISH_GAELIC            0x91
+#define IDS_TRIGGER_START_SET_FAILED    145
 #define VK_OEM_NEC_EQUAL                0x92
 #define VK_OEM_FJ_JISHO                 0x92
 #define LANG_CENTRAL_KURDISH            0x92
+#define IDS_TRIGGER_END_SET_FAILED      146
 #define VK_OEM_FJ_MASSHOU               0x93
+#define IDS_STRING147                   147
+#define IDS_CANNOT_ADD_USER_ID          147
 #define VK_OEM_FJ_TOUROKU               0x94
+#define IDS_CANNOT_GET_ACTION_COLLECTION 148
 #define VK_OEM_FJ_LOYA                  0x95
+#define IDS_CANNOT_CREATE_ACTION        149
 #define VK_OEM_FJ_ROYA                  0x96
+#define IDS_CANNOT_QUERY_ACTION         150
+#define IDS_CANNOT_SET_EXECUTABLE_PATH  151
+#define IDS_TASK_REGISTRATION_FAILED    152
+#define IDS_STRING153                   153
+#define IDS_TASK_REGISTRATION_SUCCESS   153
 #define VK_LSHIFT                       0xA0
 #define WM_NCMOUSEMOVE                  0x00A0
 #define VK_RSHIFT                       0xA1
@@ -1546,23 +1557,16 @@
 #define IDTIMEOUT                       32000
 #define OCR_NORMAL                      32512
 #define OIC_SAMPLE                      32512
-#define IDI_APPLICATION                 32512
 #define OCR_IBEAM                       32513
 #define OIC_HAND                        32513
-#define IDI_HAND                        32513
 #define OCR_WAIT                        32514
 #define OIC_QUES                        32514
-#define IDI_QUESTION                    32514
 #define OCR_CROSS                       32515
 #define OIC_BANG                        32515
-#define IDI_EXCLAMATION                 32515
 #define OCR_UP                          32516
 #define OIC_NOTE                        32516
-#define IDI_ASTERISK                    32516
 #define OIC_WINLOGO                     32517
-#define IDI_WINLOGO                     32517
 #define OIC_SHIELD                      32518
-#define IDI_SHIELD                      32518
 #define OCR_SIZE                        32640
 #define OCR_ICON                        32641
 #define OCR_SIZENWSE                    32642
@@ -1649,10 +1653,7 @@
 #define SC_CONTEXTHELP                  0xF180
 #define LVS_TYPESTYLEMASK               0xfc00
 #define SPVERSION_MASK                  0x0000FF00
-#define HTERROR                         -2
-#define PWR_FAIL                        -1
 #define UNICODE_NOCHAR                  0xFFFF
-#define HTTRANSPARENT                   -1
 
 // Next default values for new objects
 // 

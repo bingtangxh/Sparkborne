@@ -1,11 +1,7 @@
 #include "Sparkborne.hpp"
 
-namespace
-{
 
-}
-
-ATL::CAtlExeModuleT<btxh::SparkborneAtlModule> _AtlModule;
+btxh::SparkborneAtlModule _AtlModule;
 
 HINSTANCE btxh::g_instance=nullptr;
 HWND btxh::g_mainWindow=nullptr;
@@ -41,15 +37,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         btxh::LaunchEnabledStartupItems();
         CoUninitialize();
         return 0;
-    }
-
-    const HRESULT atlModuleResult=// _AtlModule.Init(nullptr,hInstance);
-    _AtlModule.InitializeCom();
-    if (FAILED(atlModuleResult)&&0)
-    {
-        MessageBoxW(nullptr,btxh::LoadResString(IDS_ATL_INIT_FAILED).c_str(),btxh::LoadResString(IDS_ERROR_TITLE).c_str(), MB_ICONERROR | MB_OK);
-        CoUninitialize();
-        return 1;
     }
 
     if (!AtlAxWinInit())

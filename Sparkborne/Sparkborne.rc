@@ -110,7 +110,7 @@ BEGIN
     IDS_MENU_STARTUP        "启动项"
     IDS_MENU_REFRESH        "刷新"
     IDS_MENU_HELP           "帮助"
-    IDS_MENU_MORE_WORKS     "更多我做的东西..."
+    IDS_MENU_MORE_WORKS     "更多与我有关的东西..."
     IDS_WINDOW_HINT         "在左侧列表中选择启动项可查看详情并执行操作。"
     IDS_ITEM_ENABLED        "已启用"
     IDS_ITEM_DISABLED       "已禁用"
@@ -125,7 +125,7 @@ BEGIN
     IDS_DISABLE_ACTION      "是否禁用该启动项？"
     IDS_ERROR_TITLE         "Sparkborne"
     IDS_ACTION_FAILED_FMT   "操作失败：\n%s"
-    IDS_WEB_WINDOW_TITLE    "更多我做的东西"
+    IDS_WEB_WINDOW_TITLE    "更多与我有关的东西"
     IDS_REGISTRY_HKCU_RUN   "HKCU Run"
     IDS_REGISTRY_HKCU_DISABLED "HKCU -Run"
     IDS_REGISTRY_HKLM_RUN   "HKLM Run"
@@ -148,6 +148,27 @@ BEGIN
     IDS_COM_SECURITY_FAILED "CoInitializeSecurity 失败： %x"
     IDS_GET_ROOT_FOLDER_FAILED "不能获得根文件夹指针： %x"
     IDS_CREATE_TASK_FAILED  "不能创建任务定义： %x"
+    IDS_CANNOT_GET_IDENT_PTR "不能获得识别指针： %x"
+    IDS_CANNOT_PUT_IDENT_PTR "不能放置识别信息： %x"
+    IDS_CANNOT_GET_SETTINGS_PTR "不能获得设置指针： %x"
+    IDS_CANNOT_PUT_SETTINGS_PTR "不能放置设置信息： %x"
+    IDS_CANNOT_GET_TRIGGER_COLLECTION "不能获得触发器集： %x"
+    IDS_CANNOT_CREATE_TRIGGER "不能创建触发器： %x"
+    IDS_CANNOT_QUERY_TRIGGER "ILogonTrigger 调用 QueryInterface 失败： %x"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_TRIGGER_ID_SET_FAILED "不能放置触发器 ID： %x"
+    IDS_TRIGGER_START_SET_FAILED "不能放置开始时间点： %x"
+    IDS_TRIGGER_END_SET_FAILED "不能放置结束时间点： %x"
+    IDS_CANNOT_ADD_USER_ID  "不能将用户 ID 添加到登录触发器： %x"
+    IDS_CANNOT_GET_ACTION_COLLECTION "不能获得任务集指针： %x"
+    IDS_CANNOT_CREATE_ACTION "不能创建操作： %x"
+    IDS_CANNOT_QUERY_ACTION "IExecAction 调用 QueryInterface 失败： %x"
+    IDS_CANNOT_SET_EXECUTABLE_PATH "不能设置可执行文件路径： %x"
+    IDS_TASK_REGISTRATION_FAILED "保存任务出错： %x"
+    IDS_TASK_REGISTRATION_SUCCESS "任务已成功注册！"
 END
 
 #endif    // 中文(简体) resources
@@ -237,6 +258,28 @@ BEGIN
     IDS_COM_SECURITY_FAILED "CoInitializeSecurity failed: %x"
     IDS_GET_ROOT_FOLDER_FAILED "Cannot get Root Folder pointer: %x"
     IDS_CREATE_TASK_FAILED  "Failed to create a task definition: %x"
+    IDS_CANNOT_GET_IDENT_PTR "Cannot get identification pointer: %x"
+    IDS_CANNOT_PUT_IDENT_PTR "Cannot put identification info: %x"
+    IDS_CANNOT_GET_SETTINGS_PTR "Cannot get settings pointer: %x"
+    IDS_CANNOT_PUT_SETTINGS_PTR "Cannot put setting info: %x"
+    IDS_CANNOT_GET_TRIGGER_COLLECTION "Cannot get trigger collection: %x"
+    IDS_CANNOT_CREATE_TRIGGER "Cannot create the trigger: %x"
+    IDS_CANNOT_QUERY_TRIGGER 
+                            "QueryInterface call failed for ILogonTrigger: %x"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_TRIGGER_ID_SET_FAILED "Cannot put the trigger ID: %x"
+    IDS_TRIGGER_START_SET_FAILED "Cannot put the start boundary: %x"
+    IDS_TRIGGER_END_SET_FAILED "Cannot put the end boundary: %x"
+    IDS_CANNOT_ADD_USER_ID  "Cannot add user ID to logon trigger: %x"
+    IDS_CANNOT_GET_ACTION_COLLECTION "Cannot get Task collection pointer: %x"
+    IDS_CANNOT_CREATE_ACTION "Cannot create the action: %x"
+    IDS_CANNOT_QUERY_ACTION "QueryInterface call failed for IExecAction: %x"
+    IDS_CANNOT_SET_EXECUTABLE_PATH "Cannot set path of executable: %x"
+    IDS_TASK_REGISTRATION_FAILED "Error saving the Task: %x"
+    IDS_TASK_REGISTRATION_SUCCESS "Success! Task successfully registered. "
 END
 
 #endif    // 英语(美国) resources

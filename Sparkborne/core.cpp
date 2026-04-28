@@ -306,7 +306,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     hr=pTask->get_RegistrationInfo(&pRegInfo);
     if (FAILED(hr))
     {
-        printf("\nCannot get identification pointer: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_IDENT_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -317,7 +317,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pRegInfo->Release();
     if (FAILED(hr))
     {
-        printf("\nCannot put identification info: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_IDENT_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -330,7 +330,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     hr=pTask->get_Settings(&pSettings);
     if (FAILED(hr))
     {
-        printf("\nCannot get settings pointer: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -342,7 +342,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pSettings->Release();
     if (FAILED(hr))
     {
-        printf("\nCannot put setting info: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -355,7 +355,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     hr=pTask->get_Triggers(&pTriggerCollection);
     if (FAILED(hr))
     {
-        printf("\nCannot get trigger collection: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_TRIGGER_COLLECTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -368,7 +368,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pTriggerCollection->Release();
     if (FAILED(hr))
     {
-        printf("\nCannot create the trigger: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_CREATE_TRIGGER,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -381,7 +381,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pTrigger->Release();
     if (FAILED(hr))
     {
-        printf("\nQueryInterface call failed for ILogonTrigger: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_QUERY_TRIGGER,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -390,7 +390,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
 
     hr=pLogonTrigger->put_Id(_bstr_t(L"Trigger1"));
     if (FAILED(hr))
-        printf("\nCannot put the trigger ID: %x",hr);
+    MessageBoxW(hWnd,FormatString(IDS_TRIGGER_ID_SET_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
 
     //  Set the task to start at a certain time. The time 
     //  format should be YYYY-MM-DDTHH:MM:SS(+-)(timezone).
@@ -398,11 +398,11 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     //  is January 1st 2005 at 12:05
     hr=pLogonTrigger->put_StartBoundary(_bstr_t(L"2005-01-01T12:05:00"));
     if (FAILED(hr))
-        printf("\nCannot put the start boundary: %x",hr);
+    MessageBoxW(hWnd,FormatString(IDS_TRIGGER_START_SET_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
 
     hr=pLogonTrigger->put_EndBoundary(_bstr_t(L"2015-05-02T08:00:00"));
     if (FAILED(hr))
-        printf("\nCannot put the end boundary: %x",hr);
+    MessageBoxW(hWnd,FormatString(IDS_TRIGGER_END_SET_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
 
     //  Define the user.  The task will execute when the user logs on.
     //  The specified user must be a user on this computer.  
@@ -410,7 +410,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pLogonTrigger->Release();
     if (FAILED(hr))
     {
-        printf("\nCannot add user ID to logon trigger: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_ADD_USER_ID,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -425,7 +425,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     hr=pTask->get_Actions(&pActionCollection);
     if (FAILED(hr))
     {
-        printf("\nCannot get Task collection pointer: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_ACTION_COLLECTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -438,7 +438,8 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pActionCollection->Release();
     if (FAILED(hr))
     {
-        printf("\nCannot create the action: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_CREATE_ACTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -452,7 +453,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pAction->Release();
     if (FAILED(hr))
     {
-        printf("\nQueryInterface call failed for IExecAction: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_QUERY_ACTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -464,7 +465,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     pExecAction->Release();
     if (FAILED(hr))
     {
-        printf("\nCannot set path of executable: %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_SET_EXECUTABLE_PATH,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -486,7 +487,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
         &pRegisteredTask);
     if (FAILED(hr))
     {
-        printf("\nError saving the Task : %x",hr);
+        MessageBoxW(hWnd,FormatString(IDS_TASK_REGISTRATION_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -494,6 +495,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     }
 
     printf("\n Success! Task successfully registered. ");
+    MessageBoxW(hWnd,LoadResString(IDS_TASK_REGISTRATION_SUCCESS).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
 
     // Clean up
     pRootFolder->Release();
