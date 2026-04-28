@@ -2,6 +2,10 @@
 #ifndef SPARKBORNE_HPP
 #define SPARKBORNE_HPP
 
+#define _WIN32_DCOM
+
+#include <comdef.h>
+#include <taskschd.h>
 #include <windows.h>
 #include <atlbase.h>
 #include <atlwin.h>
@@ -47,6 +51,7 @@ namespace btxh
     {
     };
 
+    extern HWND hWnd;
     extern HINSTANCE g_instance;
     extern HWND g_mainWindow;
     extern HWND g_webWindow;
@@ -91,6 +96,8 @@ namespace btxh
     void ApplyChineseUiFallback();
     ATOM MyRegisterClass(HINSTANCE hInstance);
     INT_PTR CALLBACK About(HWND hDlg,UINT message,WPARAM wParam,LPARAM lParam);
+    HRESULT AddtoSchduledTasks(const std::wstring& taskName,const std::wstring& executablePath,const std::wstring& arguments);
+    bool IsAdmin();
 
 } // namespace
 

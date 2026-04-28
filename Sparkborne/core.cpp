@@ -190,3 +190,316 @@ void btxh::LaunchRegistryCommand(const std::wstring& rawCommand)
         OutputDebugStringW(message.c_str());
     }
 }
+
+bool btxh::IsAdmin()
+{
+    BOOL isAdmin=FALSE;
+    PSID adminGroup=nullptr;
+    SID_IDENTIFIER_AUTHORITY ntAuthority=SECURITY_NT_AUTHORITY;
+    if (AllocateAndInitializeSid(&ntAuthority,2,SECURITY_BUILTIN_DOMAIN_RID,DOMAIN_ALIAS_RID_ADMINS,0,0,0,0,0,0,&adminGroup))
+    {
+        CheckTokenMembership(nullptr,adminGroup,&isAdmin);
+        FreeSid(adminGroup);
+    }
+    return isAdmin==TRUE;
+}
+
+HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring& executablePath,const std::wstring& arguments)
+{
+    MessageBox(hWnd,L"Placeholder yet",LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
+    // This function is currently unused, but it can be implemented in the future if needed.
+    return E_NOTIMPL;
+#if 1
+    HRESULT hr=CoInitializeEx(NULL,COINIT_MULTITHREADED);
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_COM_INIT_FAILED,{std::to_wstring(hr)}).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        return 1;
+    }
+
+    //  Set general COM security levels.
+    hr=CoInitializeSecurity(
+        NULL,
+        -1,
+        NULL,
+        NULL,
+        RPC_C_AUTHN_LEVEL_PKT_PRIVACY,
+        RPC_C_IMP_LEVEL_IMPERSONATE,
+        NULL,
+        0,
+        NULL);
+
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_COM_SECURITY_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Create a name for the task.
+    LPCWSTR wszTaskName=taskName.c_str();
+
+    //  Get the windows directory and set the path to notepad.exe.
+    std::wstring wstrExecutablePath=executablePath;
+
+
+    //  ------------------------------------------------------
+    //  Create an instance of the Task Service. 
+    ITaskService *pService=NULL;
+    hr=CoCreateInstance(CLSID_TaskScheduler,
+                        NULL,
+                        CLSCTX_INPROC_SERVER,
+                        IID_ITaskService,
+                        (void**) &pService);
+    if (FAILED(hr))
+    {
+        printf("Failed to create an instance of ITaskService: %x",hr);
+        CoUninitialize();
+        return 1;
+    }
+
+    //  Connect to the task service.
+    hr=pService->Connect(_variant_t(),_variant_t(),
+                         _variant_t(),_variant_t());
+    if (FAILED(hr))
+    {
+        printf("ITaskService::Connect failed: %x",hr);
+        pService->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Get the pointer to the root task folder.  This folder will hold the
+    //  new task that is registered.
+    ITaskFolder *pRootFolder=NULL;
+    hr=pService->GetFolder(_bstr_t(L"\\"),&pRootFolder);
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_GET_ROOT_FOLDER_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pService->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  If the same task exists, remove it.
+    pRootFolder->DeleteTask(_bstr_t(wszTaskName),0);
+
+    //  Create the task builder object to create the task.
+    ITaskDefinition *pTask=NULL;
+    hr=pService->NewTask(0,&pTask);
+
+    pService->Release();  // COM clean up.  Pointer is no longer used.
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_CREATE_TASK_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pRootFolder->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Get the registration info for setting the identification.
+    IRegistrationInfo *pRegInfo=NULL;
+    hr=pTask->get_RegistrationInfo(&pRegInfo);
+    if (FAILED(hr))
+    {
+        printf("\nCannot get identification pointer: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+    std::wstring author=L"Author Name";
+    hr=pRegInfo->put_Author(_bstr_t(author.c_str()));
+    pRegInfo->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot put identification info: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Create the settings for the task
+    ITaskSettings *pSettings=NULL;
+    hr=pTask->get_Settings(&pSettings);
+    if (FAILED(hr))
+    {
+        printf("\nCannot get settings pointer: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  Set setting values for the task. 
+    hr=pSettings->put_StartWhenAvailable(VARIANT_TRUE);
+    pSettings->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot put setting info: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Get the trigger collection to insert the logon trigger.
+    ITriggerCollection *pTriggerCollection=NULL;
+    hr=pTask->get_Triggers(&pTriggerCollection);
+    if (FAILED(hr))
+    {
+        printf("\nCannot get trigger collection: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  Add the logon trigger to the task.
+    ITrigger *pTrigger=NULL;
+    hr=pTriggerCollection->Create(TASK_TRIGGER_LOGON,&pTrigger);
+    pTriggerCollection->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot create the trigger: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    ILogonTrigger *pLogonTrigger=NULL;
+    hr=pTrigger->QueryInterface(
+        IID_ILogonTrigger,(void**) &pLogonTrigger);
+    pTrigger->Release();
+    if (FAILED(hr))
+    {
+        printf("\nQueryInterface call failed for ILogonTrigger: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    hr=pLogonTrigger->put_Id(_bstr_t(L"Trigger1"));
+    if (FAILED(hr))
+        printf("\nCannot put the trigger ID: %x",hr);
+
+    //  Set the task to start at a certain time. The time 
+    //  format should be YYYY-MM-DDTHH:MM:SS(+-)(timezone).
+    //  For example, the start boundary below
+    //  is January 1st 2005 at 12:05
+    hr=pLogonTrigger->put_StartBoundary(_bstr_t(L"2005-01-01T12:05:00"));
+    if (FAILED(hr))
+        printf("\nCannot put the start boundary: %x",hr);
+
+    hr=pLogonTrigger->put_EndBoundary(_bstr_t(L"2015-05-02T08:00:00"));
+    if (FAILED(hr))
+        printf("\nCannot put the end boundary: %x",hr);
+
+    //  Define the user.  The task will execute when the user logs on.
+    //  The specified user must be a user on this computer.  
+    hr=pLogonTrigger->put_UserId(_bstr_t(L"DOMAIN\\UserName"));
+    pLogonTrigger->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot add user ID to logon trigger: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Add an Action to the task. This task will execute notepad.exe.     
+    IActionCollection *pActionCollection=NULL;
+
+    //  Get the task action collection pointer.
+    hr=pTask->get_Actions(&pActionCollection);
+    if (FAILED(hr))
+    {
+        printf("\nCannot get Task collection pointer: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  Create the action, specifying that it is an executable action.
+    IAction *pAction=NULL;
+    hr=pActionCollection->Create(TASK_ACTION_EXEC,&pAction);
+    pActionCollection->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot create the action: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    IExecAction *pExecAction=NULL;
+    //  QI for the executable task pointer.
+    hr=pAction->QueryInterface(
+        IID_IExecAction,(void**) &pExecAction);
+    pAction->Release();
+    if (FAILED(hr))
+    {
+        printf("\nQueryInterface call failed for IExecAction: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  Set the path of the executable to notepad.exe.
+    hr=pExecAction->put_Path(_bstr_t(wstrExecutablePath.c_str()));
+    pExecAction->Release();
+    if (FAILED(hr))
+    {
+        printf("\nCannot set path of executable: %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    //  ------------------------------------------------------
+    //  Save the task in the root folder.
+    IRegisteredTask *pRegisteredTask=NULL;
+
+    hr=pRootFolder->RegisterTaskDefinition(
+        _bstr_t(wszTaskName),
+        pTask,
+        TASK_CREATE_OR_UPDATE,
+        _variant_t(L"S-1-5-32-544"),
+        _variant_t(),
+        TASK_LOGON_GROUP,
+        _variant_t(L""),
+        &pRegisteredTask);
+    if (FAILED(hr))
+    {
+        printf("\nError saving the Task : %x",hr);
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    printf("\n Success! Task successfully registered. ");
+
+    // Clean up
+    pRootFolder->Release();
+    pTask->Release();
+    pRegisteredTask->Release();
+    CoUninitialize();
+    return 0;
+#endif
+}

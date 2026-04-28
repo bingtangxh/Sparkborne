@@ -2,6 +2,7 @@
 
 namespace btxh
 {
+    HWND hWnd;
     HFONT g_uiFont=nullptr;
     bool g_ownsUiFont=false;
 
@@ -178,8 +179,15 @@ LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lPara
             }
             if (id==IDM_HELP_ABOUT)
             {
-                MessageBox(hwnd,L"Sparkborne\r\nCopyright (c) 2026 BingtangXH.",LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
+                MessageBoxW(hwnd,LoadResString(IDS_ABOUT).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
                 return 0;
+            }
+            if (id==IDM_STARTUP_ADDMYSELF){
+                btxh::hWnd=hwnd;
+                std::wstring argv0(MAX_PATH, L'\0');
+                GetModuleFileNameW(nullptr,argv0.data(),argv0.size());
+                argv0.resize(wcslen(argv0.c_str()));
+                AddtoSchduledTasks(L"Sparkborne AutoLaunch",argv0,L"-startup");
             }
             break;
         }

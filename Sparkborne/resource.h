@@ -906,20 +906,23 @@
 #define WM_NCHITTEST                    0x0084
 #define LANG_ALSATIAN                   0x84
 #define IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE 132
-
 #define VK_F22                          0x85
 #define WM_NCPAINT                      0x0085
 #define LANG_SAKHA                      0x85
 #define LANG_YAKUT                      0x85
+#define IDS_ABOUT                       133
 #define VK_F23                          0x86
 #define WM_NCACTIVATE                   0x0086
 #define LANG_KICHE                      0x86
+#define IDS_COM_SECURITY_FAILED         134
 #define VK_F24                          0x87
 #define WM_GETDLGCODE                   0x0087
 #define LANG_KINYARWANDA                0x87
+#define IDS_GET_ROOT_FOLDER_FAILED      135
 #define VK_NAVIGATION_VIEW              0x88
 #define WM_SYNCPAINT                    0x0088
 #define LANG_WOLOF                      0x88
+#define IDS_CREATE_TASK_FAILED          136
 #define VK_NAVIGATION_MENU              0x89
 #define VK_NAVIGATION_UP                0x8A
 #define VK_NAVIGATION_DOWN              0x8B
@@ -1617,6 +1620,7 @@
 #define IDM_HELP_MORE_WORKS             40003
 #define IDM_STARTUP_ITEM_BASE           41000
 #define IDM_HELP_ABOUT                  41001
+#define IDM_STARTUP_ADDMYSELF           41002
 #define IDC_STARTUP_LIST                42001
 #define IDC_ITEM_DETAILS                42002
 #define IDC_BTN_ENABLE                  42003
@@ -1655,7 +1659,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        101
-#define _APS_NEXT_COMMAND_VALUE         40002
+#define _APS_NEXT_COMMAND_VALUE         40003
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

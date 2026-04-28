@@ -87,6 +87,7 @@ BEGIN
     POPUP "启动项"
     BEGIN
         MENUITEM "刷新",                          IDM_STARTUP_REFRESH
+        MENUITEM "将 Sparkborne 添加到任务计划…",       IDM_STARTUP_ADDMYSELF
     END
     POPUP "帮助"
     BEGIN
@@ -143,6 +144,10 @@ BEGIN
     IDS_BUTTON_LAUNCH_NOW   "立即启动"
     IDS_CONFIRM_DELETE      "是否删除该启动项？"
     IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE "修改 HKLM 条目需要管理员权限。"
+    IDS_ABOUT               "Sparkborne\r\nCopyright (c) 2026 BingtangXH."
+    IDS_COM_SECURITY_FAILED "CoInitializeSecurity 失败： %x"
+    IDS_GET_ROOT_FOLDER_FAILED "不能获得根文件夹指针： %x"
+    IDS_CREATE_TASK_FAILED  "不能创建任务定义： %x"
 END
 
 #endif    // 中文(简体) resources
@@ -169,6 +174,7 @@ BEGIN
     POPUP "Startup items"
     BEGIN
         MENUITEM "Refresh",                     IDM_STARTUP_REFRESH
+        MENUITEM "Add Sparkborne to Task Scheduler...", IDM_STARTUP_ADDMYSELF
     END
     POPUP "Help"
     BEGIN
@@ -227,6 +233,10 @@ BEGIN
     IDS_CONFIRM_DELETE      "Delete this startup item?"
     IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE 
                             "Toggling HKLM items needs administrator privilege."
+    IDS_ABOUT               "Sparkborne\r\nCopyright (c) 2026 BingtangXH."
+    IDS_COM_SECURITY_FAILED "CoInitializeSecurity failed: %x"
+    IDS_GET_ROOT_FOLDER_FAILED "Cannot get Root Folder pointer: %x"
+    IDS_CREATE_TASK_FAILED  "Failed to create a task definition: %x"
 END
 
 #endif    // 英语(美国) resources
