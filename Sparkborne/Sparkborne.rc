@@ -40,8 +40,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,2,1,1
- PRODUCTVERSION 0,2,1,1
+ FILEVERSION 0,3,1,2
+ PRODUCTVERSION 0,3,1,2
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -58,12 +58,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "BingtangXH"
             VALUE "FileDescription", "Start-up program manager for Windows RT"
-            VALUE "FileVersion", "0.2.1.1"
+            VALUE "FileVersion", "0.3.1.2"
             VALUE "InternalName", "Sparkborne"
             VALUE "LegalCopyright", "Copyright (C) 2026 BingtangXH."
             VALUE "OriginalFilename", "Sparkborne.exe"
             VALUE "ProductName", "Sparkborne"
-            VALUE "ProductVersion", "0.2.1.1"
+            VALUE "ProductVersion", "0.3.1.2"
         END
     END
     BLOCK "VarFileInfo"
