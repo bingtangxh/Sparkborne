@@ -87,11 +87,11 @@ BEGIN
     POPUP "启动项"
     BEGIN
         MENUITEM "刷新",                          IDM_STARTUP_REFRESH
-        MENUITEM "将 Sparkborne 添加到任务计划…",       IDM_STARTUP_ADDMYSELF
+        MENUITEM "将 Sparkborne 添加到任务计划（需要管理员权限）…", IDM_STARTUP_ADDMYSELF
     END
     POPUP "帮助"
     BEGIN
-        MENUITEM "更多我做的东西...",                  IDM_HELP_MORE_WORKS
+        MENUITEM "更多与我有关的东西...",                IDM_HELP_MORE_WORKS
         MENUITEM "关于…",                         IDM_HELP_ABOUT
     END
 END
@@ -169,6 +169,9 @@ BEGIN
     IDS_CANNOT_SET_EXECUTABLE_PATH "不能设置可执行文件路径： %x"
     IDS_TASK_REGISTRATION_FAILED "保存任务出错： %x"
     IDS_TASK_REGISTRATION_SUCCESS "任务已成功注册！"
+    IDS_TASK_DESCRIPTION    "关于放置的计划任务的一点解释/描述……哒哒哒……啦啦啦……"
+    IDS_ADD_TO_TASKSCHD_WARNING 
+                            "请注意：\r\n1. 添加到任务计划需要管理员权限。\r\n2. 只推荐在 Windows RT 系统上这样做，其它系统上不要添加。\r\n要继续吗？"
 END
 
 #endif    // 中文(简体) resources
@@ -195,11 +198,11 @@ BEGIN
     POPUP "Startup items"
     BEGIN
         MENUITEM "Refresh",                     IDM_STARTUP_REFRESH
-        MENUITEM "Add Sparkborne to Task Scheduler...", IDM_STARTUP_ADDMYSELF
+        MENUITEM "Add Sparkborne to Task Scheduler (Needs Administrator privilege)...", IDM_STARTUP_ADDMYSELF
     END
     POPUP "Help"
     BEGIN
-        MENUITEM "More things made by me...",   IDM_HELP_MORE_WORKS
+        MENUITEM "More things related to me...", IDM_HELP_MORE_WORKS
         MENUITEM "About...",                    IDM_HELP_ABOUT
     END
 END
@@ -280,6 +283,9 @@ BEGIN
     IDS_CANNOT_SET_EXECUTABLE_PATH "Cannot set path of executable: %x"
     IDS_TASK_REGISTRATION_FAILED "Error saving the Task: %x"
     IDS_TASK_REGISTRATION_SUCCESS "Success! Task successfully registered. "
+    IDS_TASK_DESCRIPTION    "Some description about auto launch schduled task here..."
+    IDS_ADD_TO_TASKSCHD_WARNING 
+                            "Please note:\r\n1. Adding to Task Scheduler requires administrator privilege.\r\n2. It is only recommended to do this on Windows RT systems; do not add it on other systems.\r\nWould you like to continue?"
 END
 
 #endif    // 英语(美国) resources

@@ -203,18 +203,21 @@ bool btxh::IsAdmin()
     return isAdmin==TRUE;
 }
 
-HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring& executablePath,const std::wstring& arguments)
+HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring& executablePath,const std::wstring& arguments,const std::wstring& path,const std::wstring& author,const std::wstring& description)
 {
 #if 0
     MessageBox(hWnd,L"Placeholder yet",LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
     // This function is currently unused, but it can be implemented in the future if needed.
     return E_NOTIMPL;
 #else
-    HRESULT hr=CoInitializeEx(NULL,COINIT_MULTITHREADED);
-    if (FAILED(hr))
-    {
-        MessageBoxW(hWnd,FormatString(IDS_COM_INIT_FAILED,{std::to_wstring(hr)}).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        return 1;
+    HRESULT hr;
+    if (0){
+        hr=CoInitializeEx(NULL,COINIT_MULTITHREADED);
+        if (FAILED(hr))
+        {
+            MessageBoxW(hWnd,FormatString(IDS_COM_INIT_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+            return 1;
+        }
     }
 
     //  Set general COM security levels.
@@ -299,8 +302,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
         return 1;
     }
 
-    // Create \\BingtangXH if it does not exist.
-    hr=pRootFolder->CreateFolder(_bstr_t(L"\\BingtangXH"),_variant_t(L""),nullptr);
+    hr=pRootFolder->CreateFolder(_bstr_t(path.c_str()),_variant_t(L""),nullptr);
     if (FAILED(hr) && hr!=HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS))
     {
         MessageBoxW(hWnd,FormatString(IDS_GET_ROOT_FOLDER_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
@@ -311,7 +313,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     }
 
     ITaskFolder *pTargetFolder=NULL;
-    hr=pService->GetFolder(_bstr_t(L"\\BingtangXH"),&pTargetFolder);
+    hr=pService->GetFolder(_bstr_t(path.c_str()),&pTargetFolder);
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_GET_ROOT_FOLDER_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
@@ -334,8 +336,17 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
         CoUninitialize();
         return 1;
     }
-    std::wstring author=L"Author Name";
+    
     hr=pRegInfo->put_Author(_bstr_t(author.c_str()));
+    hr=pRegInfo->put_Description(_bstr_t(description.c_str()));
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_IDENT_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pTargetFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
     pRegInfo->Release();
     if (FAILED(hr))
     {
@@ -345,7 +356,6 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
         CoUninitialize();
         return 1;
     }
-
     //  ------------------------------------------------------
     //  Create the settings for the task
     ITaskSettings *pSettings=NULL;
@@ -374,7 +384,29 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
         CoUninitialize();
         return 1;
     }
+    //  ------------------------------------------------------
+    //  Set principal run level to highest available.
+    IPrincipal* pPrincipal=nullptr;
+    hr=pTask->get_Principal(&pPrincipal);
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pTargetFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
 
+    hr=pPrincipal->put_RunLevel(TASK_RUNLEVEL_HIGHEST);
+    pPrincipal->Release();
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pTargetFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
     //  ------------------------------------------------------
     //  Get the trigger collection to insert the logon trigger.
     ITriggerCollection *pTriggerCollection=NULL;
@@ -435,10 +467,29 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     //  Define the user.  The task will execute when the user logs on.
     std::wstring userName(256,L'\0');
     DWORD userNameSize=static_cast<DWORD>(userName.size());
+    wchar_t userSID[260]=L"";
+    wchar_t domainName[260]=L"";
+    char sidStr[260]="\0";
+    wchar_t sidStrW[260]=L"";
+    DWORD userSIDSize=static_cast<DWORD>(std::size(userSID));
+    DWORD domainNameSize=static_cast<DWORD>(std::size(domainName));
+    DWORD sidStrSize=static_cast<DWORD>(std::size(sidStr));
+    DWORD sidStrWSize=static_cast<DWORD>(std::size(sidStrW));
+    SID_NAME_USE sidType;
     if (GetUserNameW(userName.data(),&userNameSize))
     {
         userName.resize(userNameSize-1);
         hr=pLogonTrigger->put_UserId(_bstr_t(userName.c_str()));
+        LookupAccountNameW(nullptr,userName.c_str(),userSID,&userSIDSize,domainName,&domainNameSize,&sidType);
+        PSID_IDENTIFIER_AUTHORITY authority=GetSidIdentifierAuthority(userSID);
+        sidStrSize=sprintf(sidStr,"S-%lu-",SID_REVISION);
+        sidStrSize+=sprintf(sidStr+strlen(sidStr),"%-lu",authority->Value[5]);
+        for(int i=0,subAuthorities=*GetSidSubAuthorityCount(userSID); i<subAuthorities; i++)
+        {
+            sidStrSize+=sprintf(sidStr+sidStrSize,"-%lu",*GetSidSubAuthority(userSID,i));
+        }
+        MultiByteToWideChar(CP_ACP,0,sidStr,-1,sidStrW,sidStrWSize);
+
         if (FAILED(hr))
         {
             MessageBoxW(hWnd,FormatString(IDS_CANNOT_ADD_USER_ID,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
@@ -524,18 +575,21 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     //  ------------------------------------------------------
     //  Save the task in the root folder.
     IRegisteredTask *pRegisteredTask=NULL;
-
+    // MessageBoxW(hWnd,userName.c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
+    // MessageBoxW(hWnd,sidStrW,LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
     hr=pTargetFolder->RegisterTaskDefinition(
         _bstr_t(wszTaskName),
         pTask,
         TASK_CREATE_OR_UPDATE,
-        _variant_t(L"S-1-5-32-544"),
+        _variant_t(sidStrW),
         _variant_t(),
-        TASK_LOGON_GROUP,
+        // TASK_LOGON_GROUP,
+        TASK_LOGON_INTERACTIVE_TOKEN,
         _variant_t(L""),
         &pRegisteredTask);
     if (FAILED(hr))
     {
+        MessageBoxW(hWnd,std::to_wstring(hr).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         MessageBoxW(hWnd,FormatString(IDS_TASK_REGISTRATION_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
         pTargetFolder->Release();
         pTask->Release();
@@ -553,27 +607,4 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     CoUninitialize();
     return 0;
 #endif
-    //  ------------------------------------------------------
-    //  Set principal run level to highest available.
-    IPrincipal* pPrincipal=nullptr;
-    hr=pTask->get_Principal(&pPrincipal);
-    if (FAILED(hr))
-    {
-        MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pTargetFolder->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
-    }
-
-    hr=pPrincipal->put_RunLevel(TASK_RUNLEVEL_HIGHEST);
-    pPrincipal->Release();
-    if (FAILED(hr))
-    {
-        MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pTargetFolder->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
-    }
 }

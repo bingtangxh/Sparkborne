@@ -951,8 +951,10 @@
 #define IDS_CANNOT_QUERY_ACTION         150
 #define IDS_CANNOT_SET_EXECUTABLE_PATH  151
 #define IDS_TASK_REGISTRATION_FAILED    152
-#define IDS_STRING153                   153
 #define IDS_TASK_REGISTRATION_SUCCESS   153
+#define IDS_TASK_DESCRIPTION            154
+#define IDS_ADD_TO_TASKSCHD_WARNING     155
+#define IDS_STRING155                   155
 #define VK_LSHIFT                       0xA0
 #define WM_NCMOUSEMOVE                  0x00A0
 #define VK_RSHIFT                       0xA1

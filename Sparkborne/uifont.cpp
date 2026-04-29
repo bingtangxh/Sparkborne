@@ -183,11 +183,14 @@ LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lPara
                 return 0;
             }
             if (id==IDM_STARTUP_ADDMYSELF){
-                btxh::hWnd=hwnd;
-                std::wstring argv0(MAX_PATH, L'\0');
-                GetModuleFileNameW(nullptr,argv0.data(),argv0.size());
-                argv0.resize(wcslen(argv0.c_str()));
-                AddtoSchduledTasks(L"Sparkborne AutoLaunch",argv0,L"-startup");
+                if (MessageBoxW(hwnd,LoadResString(IDS_ADD_TO_TASKSCHD_WARNING).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONEXCLAMATION|MB_OKCANCEL)==IDOK){
+                    btxh::hWnd=hwnd;
+                    std::wstring argv0(MAX_PATH,L'\0');
+                    GetModuleFileNameW(nullptr,argv0.data(),argv0.size());
+                    argv0.resize(wcslen(argv0.c_str()));
+                    AddtoSchduledTasks(L"Sparkborne AutoLaunch",argv0,L"-startup",L"\\BingtangXH",L"BingtangXH",LoadResString(IDS_TASK_DESCRIPTION));
+                }
+                return 0;
             }
             break;
         }
