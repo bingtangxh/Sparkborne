@@ -217,7 +217,18 @@ LRESULT CALLBACK btxh::WebWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
                 return -1;
             }
 
-            g_webBrowserHost=CreateWindowW(L"AtlAxWin140",kMoreWorksUrl,WS_CHILD|WS_VISIBLE,0,0,0,0,hwnd,nullptr,g_instance,nullptr);
+            g_webBrowserHost=CreateWindowW(
+                L"AtlAxWin140",
+                kMoreWorksUrl,
+                WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_HSCROLL,
+                0,
+                0,
+                0,
+                0,
+                hwnd,
+                nullptr,
+                g_instance,
+                nullptr);
             if (!g_webBrowserHost)
             {
                 ShowError(hwnd,GetLastError());

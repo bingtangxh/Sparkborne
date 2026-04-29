@@ -81,7 +81,6 @@ bool btxh::ToggleShortcutItem(const StartupItem& item)
     return !ec;
 }
 
-
 bool btxh::DeleteRegistryItem(const StartupItem& item)
 {
     HKEY key=nullptr;
@@ -206,10 +205,11 @@ bool btxh::IsAdmin()
 
 HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring& executablePath,const std::wstring& arguments)
 {
+#if 0
     MessageBox(hWnd,L"Placeholder yet",LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
     // This function is currently unused, but it can be implemented in the future if needed.
     return E_NOTIMPL;
-#if 1
+#else
     HRESULT hr=CoInitializeEx(NULL,COINIT_MULTITHREADED);
     if (FAILED(hr))
     {
@@ -272,8 +272,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     }
 
     //  ------------------------------------------------------
-    //  Get the pointer to the root task folder.  This folder will hold the
-    //  new task that is registered.
+    //  Get or create target task folder.
     ITaskFolder *pRootFolder=NULL;
     hr=pService->GetFolder(_bstr_t(L"\\"),&pRootFolder);
     if (FAILED(hr))
@@ -300,6 +299,29 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
         return 1;
     }
 
+    // Create \\BingtangXH if it does not exist.
+    hr=pRootFolder->CreateFolder(_bstr_t(L"\\BingtangXH"),_variant_t(L""),nullptr);
+    if (FAILED(hr) && hr!=HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_GET_ROOT_FOLDER_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pRootFolder->Release();
+        pService->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    ITaskFolder *pTargetFolder=NULL;
+    hr=pService->GetFolder(_bstr_t(L"\\BingtangXH"),&pTargetFolder);
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_GET_ROOT_FOLDER_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pRootFolder->Release();
+        pService->Release();
+        CoUninitialize();
+        return 1;
+    }
+    pRootFolder->Release();
+
     //  ------------------------------------------------------
     //  Get the registration info for setting the identification.
     IRegistrationInfo *pRegInfo=NULL;
@@ -307,7 +329,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_IDENT_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -318,7 +340,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_IDENT_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -331,7 +353,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -339,11 +361,15 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
 
     //  Set setting values for the task. 
     hr=pSettings->put_StartWhenAvailable(VARIANT_TRUE);
+    if (SUCCEEDED(hr))
+    {
+        hr=pSettings->put_DisallowStartIfOnBatteries(VARIANT_FALSE);
+    }
     pSettings->Release();
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -356,7 +382,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_TRIGGER_COLLECTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -369,7 +395,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_CREATE_TRIGGER,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -382,7 +408,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_QUERY_TRIGGER,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -396,29 +422,37 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     //  format should be YYYY-MM-DDTHH:MM:SS(+-)(timezone).
     //  For example, the start boundary below
     //  is January 1st 2005 at 12:05
-    hr=pLogonTrigger->put_StartBoundary(_bstr_t(L"2005-01-01T12:05:00"));
-    if (FAILED(hr))
-    MessageBoxW(hWnd,FormatString(IDS_TRIGGER_START_SET_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
+    if (0){
+        hr=pLogonTrigger->put_StartBoundary(_bstr_t(L"2005-01-01T12:05:00"));
+        if (FAILED(hr))
+            MessageBoxW(hWnd,FormatString(IDS_TRIGGER_START_SET_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
 
-    hr=pLogonTrigger->put_EndBoundary(_bstr_t(L"2015-05-02T08:00:00"));
-    if (FAILED(hr))
-    MessageBoxW(hWnd,FormatString(IDS_TRIGGER_END_SET_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
-
-    //  Define the user.  The task will execute when the user logs on.
-    //  The specified user must be a user on this computer.  
-    hr=pLogonTrigger->put_UserId(_bstr_t(L"DOMAIN\\UserName"));
-    pLogonTrigger->Release();
-    if (FAILED(hr))
-    {
-        MessageBoxW(hWnd,FormatString(IDS_CANNOT_ADD_USER_ID,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
-        pTask->Release();
-        CoUninitialize();
-        return 1;
+        hr=pLogonTrigger->put_EndBoundary(_bstr_t(L"2015-05-02T08:00:00"));
+        if (FAILED(hr))
+            MessageBoxW(hWnd,FormatString(IDS_TRIGGER_END_SET_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
     }
 
+    //  Define the user.  The task will execute when the user logs on.
+    std::wstring userName(256,L'\0');
+    DWORD userNameSize=static_cast<DWORD>(userName.size());
+    if (GetUserNameW(userName.data(),&userNameSize))
+    {
+        userName.resize(userNameSize-1);
+        hr=pLogonTrigger->put_UserId(_bstr_t(userName.c_str()));
+        if (FAILED(hr))
+        {
+            MessageBoxW(hWnd,FormatString(IDS_CANNOT_ADD_USER_ID,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+            pLogonTrigger->Release();
+            pTargetFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
+    }
+    pLogonTrigger->Release();
+
     //  ------------------------------------------------------
-    //  Add an Action to the task. This task will execute notepad.exe.     
+    //  Add an Action to the task. This task will execute executablePath.  
     IActionCollection *pActionCollection=NULL;
 
     //  Get the task action collection pointer.
@@ -426,7 +460,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_ACTION_COLLECTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -440,7 +474,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_CREATE_ACTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
 
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -454,29 +488,44 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_QUERY_ACTION,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
     }
 
-    //  Set the path of the executable to notepad.exe.
+    //  Set the path of the executable.
     hr=pExecAction->put_Path(_bstr_t(wstrExecutablePath.c_str()));
-    pExecAction->Release();
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_CANNOT_SET_EXECUTABLE_PATH,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pExecAction->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
     }
+
+    if (!arguments.empty())
+    {
+        hr=pExecAction->put_Arguments(_bstr_t(arguments.c_str()));
+        if (FAILED(hr))
+        {
+            MessageBoxW(hWnd,FormatString(IDS_CANNOT_SET_EXECUTABLE_PATH,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+            pExecAction->Release();
+            pTargetFolder->Release();
+            pTask->Release();
+            CoUninitialize();
+            return 1;
+        }
+    }
+    pExecAction->Release();
 
     //  ------------------------------------------------------
     //  Save the task in the root folder.
     IRegisteredTask *pRegisteredTask=NULL;
 
-    hr=pRootFolder->RegisterTaskDefinition(
+    hr=pTargetFolder->RegisterTaskDefinition(
         _bstr_t(wszTaskName),
         pTask,
         TASK_CREATE_OR_UPDATE,
@@ -488,7 +537,7 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     if (FAILED(hr))
     {
         MessageBoxW(hWnd,FormatString(IDS_TASK_REGISTRATION_FAILED,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
-        pRootFolder->Release();
+        pTargetFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
@@ -498,10 +547,33 @@ HRESULT btxh::AddtoSchduledTasks(const std::wstring& taskName,const std::wstring
     MessageBoxW(hWnd,LoadResString(IDS_TASK_REGISTRATION_SUCCESS).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
 
     // Clean up
-    pRootFolder->Release();
+    pTargetFolder->Release();
     pTask->Release();
     pRegisteredTask->Release();
     CoUninitialize();
     return 0;
 #endif
+    //  ------------------------------------------------------
+    //  Set principal run level to highest available.
+    IPrincipal* pPrincipal=nullptr;
+    hr=pTask->get_Principal(&pPrincipal);
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_GET_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pTargetFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    hr=pPrincipal->put_RunLevel(TASK_RUNLEVEL_HIGHEST);
+    pPrincipal->Release();
+    if (FAILED(hr))
+    {
+        MessageBoxW(hWnd,FormatString(IDS_CANNOT_PUT_SETTINGS_PTR,{ std::to_wstring(hr) }).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONERROR|MB_OK);
+        pTargetFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
 }
