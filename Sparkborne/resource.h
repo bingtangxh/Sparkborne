@@ -1,7 +1,10 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 Sparkborne.rc 使用
+// Microsoft Visual C++ generated include file.
+// Used by Sparkborne.rc
 //
+
+#include <Windows.h>
+
 #define SW_HIDE                         0
 #define HIDE_WINDOW                     0
 #define WM_NULL                         0x0000
@@ -60,7 +63,6 @@
 #define CS_VREDRAW                      0x0001
 #define CF_TEXT                         1
 #define SCF_ISSECURE                    0x00000001
-#define IDOK                            1
 #define BN_PAINT                        1
 #define BST_CHECKED                     0x0001
 #define TBSTYLE_SEP                     0x0001
@@ -239,7 +241,6 @@
 #define TME_LEAVE                       0x00000002
 #define CS_HREDRAW                      0x0002
 #define CF_BITMAP                       2
-#define IDCANCEL                        2
 #define BN_HILITE                       2
 #define BST_INDETERMINATE               0x0002
 #define HDS_BUTTONS                     0x0002
@@ -954,7 +955,6 @@
 #define IDS_TASK_REGISTRATION_SUCCESS   153
 #define IDS_TASK_DESCRIPTION            154
 #define IDS_ADD_TO_TASKSCHD_WARNING     155
-#define IDS_STRING155                   155
 #define VK_LSHIFT                       0xA0
 #define WM_NCMOUSEMOVE                  0x00A0
 #define VK_RSHIFT                       0xA1
@@ -1656,12 +1656,14 @@
 #define LVS_TYPESTYLEMASK               0xfc00
 #define SPVERSION_MASK                  0x0000FF00
 #define UNICODE_NOCHAR                  0xFFFF
+#define IDC_STATIC                     -1
+#define IDD_ABOUTBOX                    103
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        101
+#define _APS_NEXT_RESOURCE_VALUE        103
 #define _APS_NEXT_COMMAND_VALUE         40003
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101

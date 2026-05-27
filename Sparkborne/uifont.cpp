@@ -44,6 +44,7 @@ namespace btxh
 
 LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
+    btxh::hWnd = hwnd;
     switch (msg)
     {
         case WM_CREATE:
@@ -179,12 +180,15 @@ LRESULT CALLBACK btxh::MainWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lPara
             }
             if (id==IDM_HELP_ABOUT)
             {
+#if 1
+                DialogBox(g_instance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+#else
                 MessageBoxW(hwnd,LoadResString(IDS_ABOUT).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONINFORMATION|MB_OK);
+#endif
                 return 0;
             }
             if (id==IDM_STARTUP_ADDMYSELF){
                 if (MessageBoxW(hwnd,LoadResString(IDS_ADD_TO_TASKSCHD_WARNING).c_str(),LoadResString(IDS_APP_TITLE).c_str(),MB_ICONEXCLAMATION|MB_OKCANCEL)==IDOK){
-                    btxh::hWnd=hwnd;
                     std::wstring argv0(MAX_PATH,L'\0');
                     GetModuleFileNameW(nullptr,argv0.data(),argv0.size());
                     argv0.resize(wcslen(argv0.c_str()));
@@ -299,4 +303,23 @@ void btxh::UpdateDetailsPanel()
     if (g_disableButton){ EnableWindow(g_disableButton,item.enabled); }
     if (g_deleteButton){ EnableWindow(g_deleteButton,TRUE); }
     if (g_launchNowButton){ EnableWindow(g_launchNowButton,TRUE); }
+}
+
+INT_PTR CALLBACK btxh::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
 }

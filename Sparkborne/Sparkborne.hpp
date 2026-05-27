@@ -98,6 +98,7 @@ namespace btxh
     INT_PTR CALLBACK About(HWND hDlg,UINT message,WPARAM wParam,LPARAM lParam);
     HRESULT AddtoSchduledTasks(const std::wstring& taskName,const std::wstring& executablePath,const std::wstring& arguments,const std::wstring& path,const std::wstring& author,const std::wstring& description);
     bool IsAdmin();
+    INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 } // namespace
 
