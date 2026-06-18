@@ -1,0 +1,378 @@
+// Microsoft Visual C++ generated resource script.
+//
+#pragma code_page(65001)
+
+#include "resource.h"
+/////////////////////////////////////////////////////////////////////////////
+// 中文(简体) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_NEUTRAL
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,3,2,3
+ PRODUCTVERSION 0,3,2,3
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x0L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404b0"
+        BEGIN
+            VALUE "CompanyName", "BingtangXH"
+            VALUE "FileDescription", "Start-up program manager for Windows RT"
+            VALUE "FileVersion", "0.3.2.3"
+            VALUE "InternalName", "Sparkborne"
+            VALUE "LegalCopyright", "Copyright (C) 2026 BingtangXH."
+            VALUE "OriginalFilename", "Sparkborne.exe"
+            VALUE "ProductName", "Sparkborne"
+            VALUE "ProductVersion", "0.3.2.3"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "文件"
+    BEGIN
+        MENUITEM "退出",                          IDM_FILE_EXIT
+    END
+    POPUP "启动项"
+    BEGIN
+        MENUITEM "刷新",                          IDM_STARTUP_REFRESH
+        MENUITEM "将 Sparkborne 添加到任务计划（需要管理员权限）…", IDM_STARTUP_ADDMYSELF
+    END
+    POPUP "帮助"
+    BEGIN
+        MENUITEM "更多与我有关的东西...",                IDM_HELP_MORE_WORKS
+        MENUITEM "关于…",                         IDM_HELP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于 Sparkborne"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Sparkborne",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "版权所有 (c) 2026 BingtangXH.",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "确定",IDOK,113,41,50,14,WS_GROUP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "Sparkborne"
+    IDS_MENU_FILE           "文件"
+    IDS_MENU_EXIT           "退出"
+    IDS_MENU_STARTUP        "启动项"
+    IDS_MENU_REFRESH        "刷新"
+    IDS_MENU_HELP           "帮助"
+    IDS_MENU_MORE_WORKS     "更多与我有关的东西..."
+    IDS_WINDOW_HINT         "在左侧列表中选择启动项可查看详情并执行操作。"
+    IDS_ITEM_ENABLED        "已启用"
+    IDS_ITEM_DISABLED       "已禁用"
+    IDS_ITEM_TYPE_REGISTRY  "注册表"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ITEM_TYPE_SHORTCUT  "快捷方式"
+    IDS_ITEM_DETAILS_FMT    "名称：%s\n类型：%s\n来源：%s\n路径/命令：%s\n状态：%s\n\n%s"
+    IDS_ENABLE_ACTION       "是否启用该启动项？"
+    IDS_DISABLE_ACTION      "是否禁用该启动项？"
+    IDS_ERROR_TITLE         "Sparkborne"
+    IDS_ACTION_FAILED_FMT   "操作失败：\n%s"
+    IDS_WEB_WINDOW_TITLE    "更多与我有关的东西"
+    IDS_REGISTRY_HKCU_RUN   "HKCU Run"
+    IDS_REGISTRY_HKCU_DISABLED "HKCU -Run"
+    IDS_REGISTRY_HKLM_RUN   "HKLM Run"
+    IDS_REGISTRY_HKLM_DISABLED "HKLM -Run"
+    IDS_COM_INIT_FAILED     "初始化 COM 运行时失败。"
+    IDS_ATL_INIT_FAILED     "初始化 ATL ActiveX 宿主失败。"
+    IDS_PANEL_ITEM_DETAILS_FMT "名称：%s\r\n类型：%s\r\n来源：%s\r\n路径/命令：%s\r\n状态：%s"
+    IDS_PANEL_NO_SELECTION  "请在左侧列表中选择一个启动项。"
+    IDS_BUTTON_ENABLE       "启用"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_BUTTON_DISABLE      "禁用"
+    IDS_BUTTON_DELETE       "删除"
+    IDS_BUTTON_LAUNCH_NOW   "立即启动"
+    IDS_CONFIRM_DELETE      "是否删除该启动项？"
+    IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE "修改 HKLM 条目需要管理员权限。"
+    IDS_ABOUT               "Sparkborne\r\nCopyright (c) 2026 BingtangXH."
+    IDS_COM_SECURITY_FAILED "CoInitializeSecurity 失败： %x"
+    IDS_GET_ROOT_FOLDER_FAILED "不能获得根文件夹指针： %x"
+    IDS_CREATE_TASK_FAILED  "不能创建任务定义： %x"
+    IDS_CANNOT_GET_IDENT_PTR "不能获得识别指针： %x"
+    IDS_CANNOT_PUT_IDENT_PTR "不能放置识别信息： %x"
+    IDS_CANNOT_GET_SETTINGS_PTR "不能获得设置指针： %x"
+    IDS_CANNOT_PUT_SETTINGS_PTR "不能放置设置信息： %x"
+    IDS_CANNOT_GET_TRIGGER_COLLECTION "不能获得触发器集： %x"
+    IDS_CANNOT_CREATE_TRIGGER "不能创建触发器： %x"
+    IDS_CANNOT_QUERY_TRIGGER "ILogonTrigger 调用 QueryInterface 失败： %x"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_TRIGGER_ID_SET_FAILED "不能放置触发器 ID： %x"
+    IDS_TRIGGER_START_SET_FAILED "不能放置开始时间点： %x"
+    IDS_TRIGGER_END_SET_FAILED "不能放置结束时间点： %x"
+    IDS_CANNOT_ADD_USER_ID  "不能将用户 ID 添加到登录触发器： %x"
+    IDS_CANNOT_GET_ACTION_COLLECTION "不能获得任务集指针： %x"
+    IDS_CANNOT_CREATE_ACTION "不能创建操作： %x"
+    IDS_CANNOT_QUERY_ACTION "IExecAction 调用 QueryInterface 失败： %x"
+    IDS_CANNOT_SET_EXECUTABLE_PATH "不能设置可执行文件路径： %x"
+    IDS_TASK_REGISTRATION_FAILED "保存任务出错： %x"
+    IDS_TASK_REGISTRATION_SUCCESS "任务已成功注册！"
+    IDS_TASK_DESCRIPTION    "关于放置的计划任务的一点解释/描述……哒哒哒……啦啦啦……"
+    IDS_ADD_TO_TASKSCHD_WARNING 
+                            "请注意：\r\n1. 添加到任务计划需要管理员权限。\r\n2. 只推荐在 Windows RT 系统上这样做，其它系统上不要添加。\r\n要继续吗？"
+END
+
+#endif    // 中文(简体) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// 英语(美国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "File"
+    BEGIN
+        MENUITEM "Exit",                        IDM_FILE_EXIT
+    END
+    POPUP "Startup items"
+    BEGIN
+        MENUITEM "Refresh",                     IDM_STARTUP_REFRESH
+        MENUITEM "Add Sparkborne to Task Scheduler (Needs Administrator privilege)...", IDM_STARTUP_ADDMYSELF
+    END
+    POPUP "Help"
+    BEGIN
+        MENUITEM "More things related to me...", IDM_HELP_MORE_WORKS
+        MENUITEM "About...",                    IDM_HELP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sparkborne"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Sparkborne",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (c) 2026 BingtangXH.",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "Sparkborne"
+    IDS_MENU_FILE           "File"
+    IDS_MENU_EXIT           "Exit"
+    IDS_MENU_STARTUP        "Startup items"
+    IDS_MENU_REFRESH        "Refresh"
+    IDS_MENU_HELP           "Help"
+    IDS_MENU_MORE_WORKS     "More things made by me..."
+    IDS_WINDOW_HINT         "Select startup items from the left list to view details and actions."
+    IDS_ITEM_ENABLED        "Enabled"
+    IDS_ITEM_DISABLED       "Disabled"
+    IDS_ITEM_TYPE_REGISTRY  "Registry"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ITEM_TYPE_SHORTCUT  "Shortcut"
+    IDS_ITEM_DETAILS_FMT    "Name: %s\nType: %s\nSource: %s\nPath/Command: %s\nStatus: %s\n\n%s"
+    IDS_ENABLE_ACTION       "Enable this startup item?"
+    IDS_DISABLE_ACTION      "Disable this startup item?"
+    IDS_ERROR_TITLE         "Sparkborne"
+    IDS_ACTION_FAILED_FMT   "Operation failed:\n%s"
+    IDS_WEB_WINDOW_TITLE    "More things made by me"
+    IDS_REGISTRY_HKCU_RUN   "HKCU Run"
+    IDS_REGISTRY_HKCU_DISABLED "HKCU -Run"
+    IDS_REGISTRY_HKLM_RUN   "HKLM Run"
+    IDS_REGISTRY_HKLM_DISABLED "HKLM -Run"
+    IDS_COM_INIT_FAILED     "Failed to initialize COM runtime."
+    IDS_ATL_INIT_FAILED     "Failed to initialize ATL ActiveX hosting."
+    IDS_PANEL_ITEM_DETAILS_FMT 
+                            "Name: %s\r\nType: %s\r\nSource: %s\r\nPath/Command: %s\r\nStatus: %s"
+    IDS_PANEL_NO_SELECTION  "Select a startup item from the list on the left."
+    IDS_BUTTON_ENABLE       "Enable"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_BUTTON_DISABLE      "Disable"
+    IDS_BUTTON_DELETE       "Delete"
+    IDS_BUTTON_LAUNCH_NOW   "Launch now"
+    IDS_CONFIRM_DELETE      "Delete this startup item?"
+    IDS_TOGGLING_HKLM_NEEDS_PRIVILEGE 
+                            "Toggling HKLM items needs administrator privilege."
+    IDS_ABOUT               "Sparkborne\r\nCopyright (c) 2026 BingtangXH."
+    IDS_COM_SECURITY_FAILED "CoInitializeSecurity failed: %x"
+    IDS_GET_ROOT_FOLDER_FAILED "Cannot get Root Folder pointer: %x"
+    IDS_CREATE_TASK_FAILED  "Failed to create a task definition: %x"
+    IDS_CANNOT_GET_IDENT_PTR "Cannot get identification pointer: %x"
+    IDS_CANNOT_PUT_IDENT_PTR "Cannot put identification info: %x"
+    IDS_CANNOT_GET_SETTINGS_PTR "Cannot get settings pointer: %x"
+    IDS_CANNOT_PUT_SETTINGS_PTR "Cannot put setting info: %x"
+    IDS_CANNOT_GET_TRIGGER_COLLECTION "Cannot get trigger collection: %x"
+    IDS_CANNOT_CREATE_TRIGGER "Cannot create the trigger: %x"
+    IDS_CANNOT_QUERY_TRIGGER 
+                            "QueryInterface call failed for ILogonTrigger: %x"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_TRIGGER_ID_SET_FAILED "Cannot put the trigger ID: %x"
+    IDS_TRIGGER_START_SET_FAILED "Cannot put the start boundary: %x"
+    IDS_TRIGGER_END_SET_FAILED "Cannot put the end boundary: %x"
+    IDS_CANNOT_ADD_USER_ID  "Cannot add user ID to logon trigger: %x"
+    IDS_CANNOT_GET_ACTION_COLLECTION "Cannot get Task collection pointer: %x"
+    IDS_CANNOT_CREATE_ACTION "Cannot create the action: %x"
+    IDS_CANNOT_QUERY_ACTION "QueryInterface call failed for IExecAction: %x"
+    IDS_CANNOT_SET_EXECUTABLE_PATH "Cannot set path of executable: %x"
+    IDS_TASK_REGISTRATION_FAILED "Error saving the Task: %x"
+    IDS_TASK_REGISTRATION_SUCCESS "Success! Task successfully registered. "
+    IDS_TASK_DESCRIPTION    "Some description about auto launch schduled task here..."
+    IDS_ADD_TO_TASKSCHD_WARNING 
+                            "Please note:\r\n1. Adding to Task Scheduler requires administrator privilege.\r\n2. It is only recommended to do this on Windows RT systems; do not add it on other systems.\r\nWould you like to continue?"
+END
+
+#endif    // 英语(美国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
